@@ -13,7 +13,7 @@ This plugin's purpose is to automatically copy to your clipboard the next waypoi
 ## How to use
 
 - Once you've plotted your route on [Spansh](https://www.spansh.co.uk/plotter), download the CSV file that it generates
-- On EDMC, click the **Upload new route** button
+- On EDMC, click the **Upload new route** button and choose your file
 - The next waypoint is now copied into your clipboard! Simply paste it into your Galaxy Map, and *voilà*!
 
 Once you reach your next waypoint, the plugin should automatically update your clipboard, so you just need to go to your Galaxy Map and paste it everytime you reach a waypoint.
