@@ -49,19 +49,21 @@ def copy_waypoint(self=None):
     this.parent.update()
 
 def new_route(self=None):
-    filename = filedialog.askopenfilename()    # show an "Open" dialog box and return the path to the selected file
-    this.next_route = filename
+    filename = filedialog.askopenfilename(filetypes = (("csv files", "*.csv"),))    # show an "Open" dialog box and return the path to the selected file
 
-    with open(filename, 'r') as csvfile:
-       route_reader = csv.reader(csvfile)
-       this.route = [row for row in route_reader]
+    if filename.__len__() > 0:
+        this.next_route = filename
 
-    if monitor.system == this.route[1][0]:
-        del this.route[1]
+        with open(filename, 'r') as csvfile:
+            route_reader = csv.reader(csvfile)
+            this.route = [row for row in route_reader]
 
-    this.next_stop = this.route[1][0]
-    copy_waypoint()
-    update_gui()
+        if monitor.system == this.route[1][0]:
+            del this.route[1]
+
+        this.next_stop = this.route[1][0]
+        copy_waypoint()
+        update_gui()
 
 def update_route():
     del(this.route[1])
