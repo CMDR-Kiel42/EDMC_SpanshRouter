@@ -6,6 +6,9 @@ import csv
 import os
 from monitor import monitor
 
+if sys.platform.startswith('linux'):
+    import subprocess
+
 
 this = sys.modules[__name__]
 this.next_stop = "No route planned"
@@ -44,9 +47,13 @@ def update_gui():
     this.waypoint_btn["text"] = this.next_wp_label + this.next_stop
 
 def copy_waypoint(self=None):
-    this.parent.clipboard_clear()
-    this.parent.clipboard_append(this.next_stop)
-    this.parent.update()
+    if sys.platform == "win32":
+        this.parent.clipboard_clear()
+        this.parent.clipboard_append(this.next_stop)
+        this.parent.update()
+    else:
+        command = subprocess.Popen(["echo", "-n", this.next_stop], stdout=subprocess.PIPE)
+        subprocess.Popen(["xclip", "-selection", "c"], stdin=command.stdout)
 
 def new_route(self=None):
     filename = filedialog.askopenfilename(filetypes = (("csv files", "*.csv"),))    # show an "Open" dialog box and return the path to the selected file
