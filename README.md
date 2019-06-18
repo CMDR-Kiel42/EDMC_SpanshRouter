@@ -23,3 +23,7 @@ If for some reason, your clipboard should be empty or containing other stuff tha
 If you close EDMC, the plugin will save your progress. The next time you run EDMC, it will start back where you stopped.
 
 Fly dangerous! o7
+
+
+## Known Issues
+At the moment, plotting a route while the game is running, and which begins from the system you're currently in, doesn't update your "next waypoint". If you're in that situation, logging off and back in should "wake up" the plugin.
