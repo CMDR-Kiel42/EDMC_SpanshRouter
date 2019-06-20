@@ -1,5 +1,6 @@
 # Ignore saved route files
 *.csv
 
-# Ignore pyc files
+# Ignore compiles python files
+*.pyo
 *.pyc
