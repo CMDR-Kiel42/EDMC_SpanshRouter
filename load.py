@@ -17,6 +17,7 @@ this.next_wp_label = "Next waypoint: "
 this.parent = None
 this.save_route_path = ""
 
+
 def plugin_start():
     if sys.platform == 'win32':
         this.save_route_path = os.path.expandvars(r'%LOCALAPPDATA%\EDMarketConnector\plugins\SpanshRouter\route.csv')
@@ -41,8 +42,10 @@ def plugin_stop():
         with open(this.save_route_path, 'w') as csvfile:
             csvfile.write('\n'.join(this.route))
 
+
 def update_gui():
     this.waypoint_btn["text"] = this.next_wp_label + this.next_stop
+
 
 def copy_waypoint(self=None):
     if sys.platform == "win32":
@@ -52,6 +55,7 @@ def copy_waypoint(self=None):
     else:
         command = subprocess.Popen(["echo", "-n", this.next_stop], stdout=subprocess.PIPE)
         subprocess.Popen(["xclip", "-selection", "c"], stdin=command.stdout)
+
 
 def new_route(self=None):
     filename = filedialog.askopenfilename(filetypes = (("csv files", "*.csv"),))    # show an "Open" dialog box and return the path to the selected file
@@ -70,6 +74,7 @@ def new_route(self=None):
         copy_waypoint()
         update_gui()
 
+
 def update_route():
     del(this.route[1])
     if this.route.__len__() == 0:
@@ -82,16 +87,22 @@ def update_route():
         update_gui()
         copy_waypoint(this.parent)
 
+
 def journal_entry(cmdr, is_beta, system, station, entry, state):
     if (entry['event'] == 'FSDJump' or entry['event'] == 'Location') and entry["StarSystem"] == this.next_stop:
         update_route()
+    elif entry['event'] in ['SupercruiseEntry', 'SupercruiseExit'] and entry['StarSystem'] == this.next_stop:
+        update_route()
+    elif entry['event'] == 'FSSDiscoveryScan' and entry['SystemName'] == this.next_stop:
+        update_route()
+
 
 def plugin_app(parent):
     this.parent = parent
 
     this.frame = tk.Frame(parent)
-    this.waypoint_btn = tk.Button(frame, text= this.next_wp_label + this.next_stop)
-    this.upload_route_btn = tk.Button(frame, text= "Upload new route")
+    this.waypoint_btn = tk.Button(this.frame, text=this.next_wp_label + this.next_stop)
+    this.upload_route_btn = tk.Button(this.frame, text="Upload new route")
 
     this.waypoint_btn.bind("<ButtonRelease-1>", copy_waypoint)
     this.upload_route_btn.bind("<ButtonRelease-1>", new_route)

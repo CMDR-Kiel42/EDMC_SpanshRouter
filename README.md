@@ -26,4 +26,8 @@ Fly dangerous! o7
 
 
 ## Known Issues
-At the moment, plotting a route while the game is running, and which begins from the system you're currently in, doesn't update your "next waypoint". If you're in that situation, logging off and back in should "wake up" the plugin.
+At the moment, plotting a route while the game is running, and which begins from the system you're currently in, doesn't update your "next waypoint". If you're in that situation, a couple of solutions are available:
+
+* Performing a FSS Discovery Scan
+* Go in our out of Supercruise
+* Logging back in and out while EDMC is already running.
