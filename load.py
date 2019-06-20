@@ -91,6 +91,11 @@ def update_route():
 def journal_entry(cmdr, is_beta, system, station, entry, state):
     if (entry['event'] == 'FSDJump' or entry['event'] == 'Location') and entry["StarSystem"] == this.next_stop:
         update_route()
+    elif entry['event'] in ['SupercruiseEntry', 'SupercruiseExit'] and entry['StarSystem'] == this.next_stop:
+        update_route()
+    elif entry['event'] == 'FSSDiscoveryScan' and entry['SystemName'] == this.next_stop:
+        update_route()
+
 
 def plugin_app(parent):
     this.parent = parent
