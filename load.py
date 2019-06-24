@@ -16,6 +16,7 @@ this.route = []
 this.next_wp_label = "Next waypoint: "
 this.parent = None
 this.save_route_path = ""
+this.offset = 1
 
 
 def plugin_start(plugin_dir):
@@ -25,9 +26,16 @@ def plugin_start(plugin_dir):
         # Open the last saved route
         with open(this.save_route_path, 'r') as csvfile:
             route_reader = csv.reader(csvfile)
-            this.route = [row[0] for row in route_reader]
+
+            i = 0
+            for row in route_reader:
+                this.route.append(row)
+                if row[1] == 'x':
+                    this.offset = i
+                i+=1
         
-        this.next_stop = this.route[1]
+        this.route[this.offset][1] = ''
+        this.next_stop = this.route[this.offset][0]
     except:
         print("No previously saved route.")
 
@@ -35,8 +43,11 @@ def plugin_start(plugin_dir):
 def plugin_stop():
     if this.route.__len__() != 0:
         # Save route for next time
+        if this.offset < this.route.__len__():
+            this.route[this.offset][1] = 'x'
         with open(this.save_route_path, 'w') as csvfile:
-            csvfile.write('\n'.join(this.route))
+            writer = csv.writer(csvfile)
+            writer.writerows(this.route)
 
 
 def update_gui():
@@ -52,6 +63,14 @@ def copy_waypoint(self=None):
         command = subprocess.Popen(["echo", "-n", this.next_stop], stdout=subprocess.PIPE)
         subprocess.Popen(["xclip", "-selection", "c"], stdin=command.stdout)
 
+def goto_next_waypoint(self=None):
+    if this.offset < this.route.__len__():
+        update_route()
+
+def goto_prev_waypoint(self=None):
+    if this.offset > 0:
+        this.offset -= 2    # update_route() starts by incrementing the offset, so we can decrement by 2
+        update_route()
 
 def new_route(self=None):
     filename = filedialog.askopenfilename(filetypes = (("csv files", "*.csv"),))    # show an "Open" dialog box and return the path to the selected file
@@ -63,23 +82,21 @@ def new_route(self=None):
             route_reader = csv.reader(csvfile)
             this.route = [row[0] for row in route_reader]
 
-        if monitor.system == this.route[1][0]:
-            del this.route[1]
+            # Remove the CSV header
+            del this.route[0]
 
-        this.next_stop = this.route[1]
+        this.next_stop = this.route[1][0]
         copy_waypoint()
         update_gui()
 
 
 def update_route():
-    del(this.route[1])
-    if this.route.__len__() == 0:
-        this.next_stop = "No route planned"
-
-        if os.path.isfile(this.save_route_path):
-            os.remove(this.save_route_path)
+    this.offset += 1
+    if this.offset >= this.route.__len__():
+        this.next_stop = "End of the road!"
+        update_gui()
     else:
-        this.next_stop = this.route[1]
+        this.next_stop = this.route[this.offset][0]
         update_gui()
         copy_waypoint(this.parent)
 
@@ -97,13 +114,20 @@ def plugin_app(parent):
     this.parent = parent
 
     this.frame = tk.Frame(parent)
+    this.waypoint_prev_btn = tk.Button(this.frame, text="^")
     this.waypoint_btn = tk.Button(this.frame, text=this.next_wp_label + this.next_stop)
+    this.waypoint_next_btn = tk.Button(this.frame, text="v")
+
     this.upload_route_btn = tk.Button(this.frame, text="Upload new route")
 
+    this.waypoint_prev_btn.bind("<ButtonRelease-1>", goto_prev_waypoint)
     this.waypoint_btn.bind("<ButtonRelease-1>", copy_waypoint)
+    this.waypoint_next_btn.bind("<ButtonRelease-1>", goto_next_waypoint)
     this.upload_route_btn.bind("<ButtonRelease-1>", new_route)
 
+    this.waypoint_prev_btn.pack()
     this.waypoint_btn.pack()
+    this.waypoint_next_btn.pack()    
     this.upload_route_btn.pack()
 
     return this.frame
