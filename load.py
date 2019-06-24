@@ -18,12 +18,8 @@ this.parent = None
 this.save_route_path = ""
 
 
-def plugin_start():
-    if sys.platform == 'win32':
-        this.save_route_path = os.path.expandvars(r'%LOCALAPPDATA%\EDMarketConnector\plugins\SpanshRouter\route.csv')
-    else:
-        home = os.path.expanduser("~")
-        this.save_route_path = home + "/.local/share/EDMarketConnector/plugins/SpanshRouter/route.csv"
+def plugin_start(plugin_dir):
+    this.save_route_path = os.path.join(plugin_dir, 'route.csv')
 
     try:
         # Open the last saved route
