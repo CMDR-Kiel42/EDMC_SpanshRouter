@@ -5,12 +5,16 @@ import sys
 import csv
 import os
 from monitor import monitor
+import urllib
+import json
 
 if sys.platform.startswith('linux'):
     import subprocess
 
 
 this = sys.modules[__name__]
+this.plugin_version = "1.1.0"
+this.update_available = False
 this.next_stop = "No route planned"
 this.route = []
 this.next_wp_label = "Next waypoint: "
@@ -20,6 +24,15 @@ this.offset = 1
 
 
 def plugin_start(plugin_dir):
+    # Check for newer versions
+    url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/New_buttons_and_update/version.json"
+    response = urllib.urlopen(url)
+    latest_version = response.read()
+
+    # if response.code == 200 and this.plugin_version != latest_version:
+    if this.plugin_version != latest_version:
+        this.update_available = True
+
     this.save_route_path = os.path.join(plugin_dir, 'route.csv')
 
     try:
@@ -129,5 +142,9 @@ def plugin_app(parent):
     this.waypoint_btn.pack()
     this.waypoint_next_btn.pack()    
     this.upload_route_btn.pack()
+    
+    if this.update_available:
+        this.update_lbl = tk.Label(this.frame, text="SpanshRouter update available for download!")
+        this.update_lbl.pack()
 
     return this.frame
