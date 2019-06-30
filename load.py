@@ -36,6 +36,7 @@ def plugin_start(plugin_dir):
         
         this.route[this.offset][1] = ''
         this.next_stop = this.route[this.offset][0]
+        copy_waypoint()
     except:
         print("No previously saved route.")
 
@@ -76,15 +77,14 @@ def new_route(self=None):
     filename = filedialog.askopenfilename(filetypes = (("csv files", "*.csv"),))    # show an "Open" dialog box and return the path to the selected file
 
     if filename.__len__() > 0:
-        this.next_route = filename
-
         with open(filename, 'r') as csvfile:
             route_reader = csv.reader(csvfile)
-            this.route = [row[0] for row in route_reader]
+            this.route = [[row[0], ''] for row in route_reader]
 
             # Remove the CSV header
             del this.route[0]
 
+        this.offset = 0
         this.next_stop = this.route[1][0]
         copy_waypoint()
         update_gui()
