@@ -13,7 +13,7 @@ if sys.platform.startswith('linux'):
 
 
 this = sys.modules[__name__]
-this.plugin_version = "1.1.0"
+this.plugin_version = "1.0.0"
 this.update_available = False
 this.next_stop = "No route planned"
 this.route = []
@@ -25,12 +25,11 @@ this.offset = 1
 
 def plugin_start(plugin_dir):
     # Check for newer versions
-    url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/New_buttons_and_update/version.json"
+    url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/version.json"
     response = urllib.urlopen(url)
     latest_version = response.read()
 
-    # if response.code == 200 and this.plugin_version != latest_version:
-    if this.plugin_version != latest_version:
+    if response.code == 200 and this.plugin_version != latest_version:
         this.update_available = True
 
     this.save_route_path = os.path.join(plugin_dir, 'route.csv')
