@@ -20,6 +20,7 @@ this.route = []
 this.next_wp_label = "Next waypoint: "
 this.parent = None
 this.save_route_path = ""
+this.offset_file_path = ""
 this.offset = 1
 
 
@@ -42,11 +43,15 @@ def plugin_start(plugin_dir):
             i = 0
             for row in route_reader:
                 this.route.append(row)
-                if row[1] == 'x':
-                    this.offset = i
                 i+=1
+
+            try:
+                with open(this.offset_file_path, 'r') as offset_fh:
+                    this.offset = int(offset_fh.readline())
+            except:
+                this.offset = 0
+
         
-        this.route[this.offset][1] = ''
         this.next_stop = this.route[this.offset][0]
         copy_waypoint()
     except:
@@ -56,11 +61,12 @@ def plugin_start(plugin_dir):
 def plugin_stop():
     if this.route.__len__() != 0:
         # Save route for next time
-        if this.offset < this.route.__len__():
-            this.route[this.offset][1] = 'x'
         with open(this.save_route_path, 'w') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerows(this.route)
+
+        with open(this.offset_file_path, 'w') as offset_fh:
+            offset_fh.write(str(this.offset))
 
 
 def update_gui():
@@ -91,7 +97,7 @@ def new_route(self=None):
     if filename.__len__() > 0:
         with open(filename, 'r') as csvfile:
             route_reader = csv.reader(csvfile)
-            this.route = [[row[0], ''] for row in route_reader]
+            this.route = [[row[0], row[4]] for row in route_reader]
 
             # Remove the CSV header
             del this.route[0]
@@ -124,8 +130,8 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
 
 def plugin_app(parent):
     this.parent = parent
-
     this.frame = tk.Frame(parent)
+    
     this.waypoint_prev_btn = tk.Button(this.frame, text="^")
     this.waypoint_btn = tk.Button(this.frame, text=this.next_wp_label + this.next_stop)
     this.waypoint_next_btn = tk.Button(this.frame, text="v")
@@ -137,13 +143,18 @@ def plugin_app(parent):
     this.waypoint_next_btn.bind("<ButtonRelease-1>", goto_next_waypoint)
     this.upload_route_btn.bind("<ButtonRelease-1>", new_route)
 
-    this.waypoint_prev_btn.pack()
-    this.waypoint_btn.pack()
-    this.waypoint_next_btn.pack()    
-    this.upload_route_btn.pack()
+    this.waypoint_prev_btn.grid(row=0)
+    this.waypoint_btn.grid(row=1)
+    this.waypoint_next_btn.grid(row=2)
+    this.upload_route_btn.grid(row=3, pady=10)
+
+    this.jumpcounttxt_lbl = tk.Label(this.frame, text="Estimated jumps left: 18")
+
+    if this.route.__len__() > 0:
+        this.jumpcounttxt_lbl.grid(row=4, pady=5, sticky=tk.W)
     
     if this.update_available:
         this.update_lbl = tk.Label(this.frame, text="SpanshRouter update available for download!")
-        this.update_lbl.pack()
+        this.update_lbl.grid(row=5, pady=5)
 
     return this.frame
