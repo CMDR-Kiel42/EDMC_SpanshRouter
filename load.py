@@ -34,6 +34,7 @@ def plugin_start(plugin_dir):
         this.update_available = True
 
     this.save_route_path = os.path.join(plugin_dir, 'route.csv')
+    this.save_route_path = os.path.join(plugin_dir, 'offset')
 
     try:
         # Open the last saved route
