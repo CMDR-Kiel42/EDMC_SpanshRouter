@@ -18,10 +18,12 @@ this.update_available = False
 this.next_stop = "No route planned"
 this.route = []
 this.next_wp_label = "Next waypoint: "
+this.jumpcountlbl_txt = "Estimated jumps left: "
 this.parent = None
 this.save_route_path = ""
 this.offset_file_path = ""
-this.offset = 1
+this.offset = 0
+this.jumps_left = 0
 
 
 def plugin_start(plugin_dir):
@@ -34,25 +36,26 @@ def plugin_start(plugin_dir):
         this.update_available = True
 
     this.save_route_path = os.path.join(plugin_dir, 'route.csv')
-    this.save_route_path = os.path.join(plugin_dir, 'offset')
+    this.offset_file_path = os.path.join(plugin_dir, 'offset')
 
     try:
         # Open the last saved route
         with open(this.save_route_path, 'r') as csvfile:
             route_reader = csv.reader(csvfile)
 
-            i = 0
             for row in route_reader:
                 this.route.append(row)
-                i+=1
 
             try:
                 with open(this.offset_file_path, 'r') as offset_fh:
                     this.offset = int(offset_fh.readline())
+
             except:
                 this.offset = 0
 
-        
+        for row in this.route[this.offset:]:
+            this.jumps_left += int(row[1])
+
         this.next_stop = this.route[this.offset][0]
         copy_waypoint()
     except:
@@ -72,6 +75,11 @@ def plugin_stop():
 
 def update_gui():
     this.waypoint_btn["text"] = this.next_wp_label + this.next_stop
+    this.jumpcounttxt_lbl["text"] = this.jumpcountlbl_txt + str(this.jumps_left)
+    this.jumpcounttxt_lbl.grid()
+    this.waypoint_prev_btn.grid()
+    this.waypoint_btn.grid()
+    this.waypoint_next_btn.grid()
 
 
 def copy_waypoint(self=None):
@@ -85,12 +93,11 @@ def copy_waypoint(self=None):
 
 def goto_next_waypoint(self=None):
     if this.offset < this.route.__len__():
-        update_route()
+        update_route(1)
 
 def goto_prev_waypoint(self=None):
     if this.offset > 0:
-        this.offset -= 2    # update_route() starts by incrementing the offset, so we can decrement by 2
-        update_route()
+        update_route(-1)
 
 def new_route(self=None):
     filename = filedialog.askopenfilename(filetypes = (("csv files", "*.csv"),))    # show an "Open" dialog box and return the path to the selected file
@@ -98,19 +105,29 @@ def new_route(self=None):
     if filename.__len__() > 0:
         with open(filename, 'r') as csvfile:
             route_reader = csv.reader(csvfile)
-            this.route = [[row[0], row[4]] for row in route_reader]
 
-            # Remove the CSV header
-            del this.route[0]
+            # Skip the header
+            route_reader.next()
+
+            this.jumps_left = 0
+            for row in route_reader:
+                this.route.append([row[0], row[4]])
+                this.jumps_left += int(row[4])
 
         this.offset = 0
-        this.next_stop = this.route[1][0]
+        this.next_stop = this.route[0][0]
         copy_waypoint()
         update_gui()
 
 
-def update_route():
-    this.offset += 1
+def update_route(direction=1):
+    if direction > 0:
+        this.jumps_left -= int(this.route[this.offset][1])
+        this.offset += 1
+    else:
+        this.offset -= 1
+        this.jumps_left += int(this.route[this.offset][1])
+
     if this.offset >= this.route.__len__():
         this.next_stop = "End of the road!"
         update_gui()
@@ -149,11 +166,15 @@ def plugin_app(parent):
     this.waypoint_next_btn.grid(row=2)
     this.upload_route_btn.grid(row=3, pady=10)
 
-    this.jumpcounttxt_lbl = tk.Label(this.frame, text="Estimated jumps left: 18")
+    this.jumpcounttxt_lbl = tk.Label(this.frame, text=this.jumpcountlbl_txt + str(this.jumps_left))
+    this.jumpcounttxt_lbl.grid(row=4, pady=5, sticky=tk.W)
 
-    if this.route.__len__() > 0:
-        this.jumpcounttxt_lbl.grid(row=4, pady=5, sticky=tk.W)
-    
+    if not this.route.__len__() > 0:
+        this.waypoint_prev_btn.grid_remove()
+        this.waypoint_btn.grid_remove()
+        this.waypoint_next_btn.grid_remove()
+        this.jumpcounttxt_lbl.grid_remove()
+
     if this.update_available:
         this.update_lbl = tk.Label(this.frame, text="SpanshRouter update available for download!")
         this.update_lbl.grid(row=5, pady=5)
