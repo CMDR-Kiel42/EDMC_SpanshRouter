@@ -1,5 +1,6 @@
 import Tkinter as tk
 import tkFileDialog as filedialog
+import tkMessageBox as confirmDialog
 from ttkHyperlinkLabel import HyperlinkLabel
 import sys
 import csv
@@ -71,15 +72,29 @@ def plugin_stop():
 
         with open(this.offset_file_path, 'w') as offset_fh:
             offset_fh.write(str(this.offset))
+    else:
+        try:
+            os.remove(this.save_route_path)
+            os.remove(this.offset_file_path)
+        except:
+            print("No route to delete")
 
 
 def update_gui():
-    this.waypoint_btn["text"] = this.next_wp_label + this.next_stop
-    this.jumpcounttxt_lbl["text"] = this.jumpcountlbl_txt + str(this.jumps_left)
-    this.jumpcounttxt_lbl.grid()
-    this.waypoint_prev_btn.grid()
-    this.waypoint_btn.grid()
-    this.waypoint_next_btn.grid()
+    if not this.route.__len__() > 0:
+        this.waypoint_prev_btn.grid_remove()
+        this.waypoint_btn.grid_remove()
+        this.waypoint_next_btn.grid_remove()
+        this.jumpcounttxt_lbl.grid_remove()
+        this.clear_route_btn.grid_remove()
+    else:
+        this.waypoint_btn["text"] = this.next_wp_label + this.next_stop
+        this.jumpcounttxt_lbl["text"] = this.jumpcountlbl_txt + str(this.jumps_left)
+        this.jumpcounttxt_lbl.grid()
+        this.waypoint_prev_btn.grid()
+        this.waypoint_btn.grid()
+        this.waypoint_next_btn.grid()
+        this.clear_route_btn.grid()
 
 
 def copy_waypoint(self=None):
@@ -92,7 +107,7 @@ def copy_waypoint(self=None):
         subprocess.Popen(["xclip", "-selection", "c"], stdin=command.stdout)
 
 def goto_next_waypoint(self=None):
-    if this.offset < this.route.__len__():
+    if this.offset < this.route.__len__() - 1:
         update_route(1)
 
 def goto_prev_waypoint(self=None):
@@ -117,6 +132,24 @@ def new_route(self=None):
         this.offset = 0
         this.next_stop = this.route[0][0]
         copy_waypoint()
+        update_gui()
+
+def clear_route(self=None):
+    clear = confirmDialog.askyesno("SpanshRouter","Are you sure you want to clear the current route?")
+
+    if clear:
+        this.offset = 0
+        this.route = []
+        this.next_waypoint = ""
+        try:
+            os.remove(this.save_route_path)
+        except:
+            print("No route to delete")
+        try:
+            os.remove(this.offset_file_path)
+        except:
+            print("No offset file to delete")
+            
         update_gui()
 
 
@@ -155,16 +188,19 @@ def plugin_app(parent):
     this.waypoint_next_btn = tk.Button(this.frame, text="v")
 
     this.upload_route_btn = tk.Button(this.frame, text="Upload new route")
+    this.clear_route_btn = tk.Button(this.frame, text="Clear route")
 
     this.waypoint_prev_btn.bind("<ButtonRelease-1>", goto_prev_waypoint)
     this.waypoint_btn.bind("<ButtonRelease-1>", copy_waypoint)
     this.waypoint_next_btn.bind("<ButtonRelease-1>", goto_next_waypoint)
     this.upload_route_btn.bind("<ButtonRelease-1>", new_route)
+    this.clear_route_btn.bind("<ButtonRelease-1>", clear_route)
 
-    this.waypoint_prev_btn.grid(row=0)
-    this.waypoint_btn.grid(row=1)
-    this.waypoint_next_btn.grid(row=2)
-    this.upload_route_btn.grid(row=3, pady=10)
+    this.waypoint_prev_btn.grid(row=0, columnspan=2)
+    this.waypoint_btn.grid(row=1, columnspan=2)
+    this.waypoint_next_btn.grid(row=2, columnspan=2)
+    this.upload_route_btn.grid(row=3, pady=10, padx=0)
+    this.clear_route_btn.grid(row=3,column=1)
 
     this.jumpcounttxt_lbl = tk.Label(this.frame, text=this.jumpcountlbl_txt + str(this.jumps_left))
     this.jumpcounttxt_lbl.grid(row=4, pady=5, sticky=tk.W)
@@ -174,6 +210,7 @@ def plugin_app(parent):
         this.waypoint_btn.grid_remove()
         this.waypoint_next_btn.grid_remove()
         this.jumpcounttxt_lbl.grid_remove()
+        this.clear_route_btn.grid_remove()
 
     if this.update_available:
         this.update_lbl = tk.Label(this.frame, text="SpanshRouter update available for download!")
