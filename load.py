@@ -91,10 +91,23 @@ def update_gui():
         this.waypoint_btn["text"] = this.next_wp_label + this.next_stop
         this.jumpcounttxt_lbl["text"] = this.jumpcountlbl_txt + str(this.jumps_left)
         this.jumpcounttxt_lbl.grid()
+
         this.waypoint_prev_btn.grid()
         this.waypoint_btn.grid()
         this.waypoint_next_btn.grid()
+
+        if this.offset == 0:
+            this.waypoint_prev_btn.config(state=tk.DISABLED)
+        else:
+            this.waypoint_prev_btn.config(state=tk.NORMAL)
+
+            if this.offset == this.route.__len__()-1:
+                this.waypoint_next_btn.config(state=tk.DISABLED)
+            else:
+                this.waypoint_next_btn.config(state=tk.NORMAL)
+
         this.clear_route_btn.grid()
+        
 
 
 def copy_waypoint(self=None):
@@ -107,7 +120,7 @@ def copy_waypoint(self=None):
         subprocess.Popen(["xclip", "-selection", "c"], stdin=command.stdout)
 
 def goto_next_waypoint(self=None):
-    if this.offset < this.route.__len__() - 1:
+    if this.offset < this.route.__len__()-1:
         update_route(1)
 
 def goto_prev_waypoint(self=None):
@@ -149,7 +162,7 @@ def clear_route(self=None):
             os.remove(this.offset_file_path)
         except:
             print("No offset file to delete")
-            
+
         update_gui()
 
 
@@ -183,18 +196,12 @@ def plugin_app(parent):
     this.parent = parent
     this.frame = tk.Frame(parent)
     
-    this.waypoint_prev_btn = tk.Button(this.frame, text="^")
-    this.waypoint_btn = tk.Button(this.frame, text=this.next_wp_label + this.next_stop)
-    this.waypoint_next_btn = tk.Button(this.frame, text="v")
+    this.waypoint_prev_btn = tk.Button(this.frame, text="^", command=goto_prev_waypoint)
+    this.waypoint_btn = tk.Button(this.frame, text=this.next_wp_label + this.next_stop, command=copy_waypoint)
+    this.waypoint_next_btn = tk.Button(this.frame, text="v", command=goto_next_waypoint)
 
-    this.upload_route_btn = tk.Button(this.frame, text="Upload new route")
-    this.clear_route_btn = tk.Button(this.frame, text="Clear route")
-
-    this.waypoint_prev_btn.bind("<ButtonRelease-1>", goto_prev_waypoint)
-    this.waypoint_btn.bind("<ButtonRelease-1>", copy_waypoint)
-    this.waypoint_next_btn.bind("<ButtonRelease-1>", goto_next_waypoint)
-    this.upload_route_btn.bind("<ButtonRelease-1>", new_route)
-    this.clear_route_btn.bind("<ButtonRelease-1>", clear_route)
+    this.upload_route_btn = tk.Button(this.frame, text="Upload new route", command=new_route)
+    this.clear_route_btn = tk.Button(this.frame, text="Clear route", command=clear_route)
 
     this.waypoint_prev_btn.grid(row=0, columnspan=2)
     this.waypoint_btn.grid(row=1, columnspan=2)
@@ -216,4 +223,6 @@ def plugin_app(parent):
         this.update_lbl = tk.Label(this.frame, text="SpanshRouter update available for download!")
         this.update_lbl.grid(row=5, pady=5)
 
+    update_gui()
+    
     return this.frame
