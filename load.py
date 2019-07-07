@@ -14,7 +14,7 @@ if sys.platform.startswith('linux'):
 
 
 this = sys.modules[__name__]
-this.plugin_version = "1.1.0"
+this.plugin_version = "1.2.0"
 this.update_available = False
 this.next_stop = "No route planned"
 this.route = []
@@ -221,8 +221,8 @@ def plugin_app(parent):
 
     if this.update_available:
         this.update_lbl = tk.Label(this.frame, text="SpanshRouter update available for download!")
-        this.update_lbl.grid(row=5, pady=5)
+        this.update_lbl.grid(row=5, pady=5, columnspan=2)
 
     update_gui()
-    
+
     return this.frame
