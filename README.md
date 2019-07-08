@@ -4,6 +4,7 @@ This plugin's purpose is to automatically copy to your clipboard the next waypoi
 
 ## Install
 
+- Download the latest release [here](https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases) and unzip it.
 - Open your EDMC plugins folder - in EDMC settings, select "Plugins" tab, click the "Open" button.
 - Create a folder inside the plugins folder called **SpanshRouter**
 - Open the **SpanshRouter** folder and put **load.py** inside.
