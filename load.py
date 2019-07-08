@@ -8,13 +8,14 @@ import os
 from monitor import monitor
 import urllib
 import json
+import webbrowser
 
 if sys.platform.startswith('linux'):
     import subprocess
 
 
 this = sys.modules[__name__]
-this.plugin_version = "1.2.0"
+this.plugin_version = "1.2.1"
 this.update_available = False
 this.next_stop = "No route planned"
 this.route = []
@@ -192,6 +193,10 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
         update_route()
 
 
+def goto_update_page(self=None):
+    webbrowser.open('https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases')
+
+
 def plugin_app(parent):
     this.parent = parent
     this.frame = tk.Frame(parent)
@@ -220,8 +225,8 @@ def plugin_app(parent):
         this.clear_route_btn.grid_remove()
 
     if this.update_available:
-        this.update_lbl = tk.Label(this.frame, text="SpanshRouter update available for download!")
-        this.update_lbl.grid(row=5, pady=5, columnspan=2)
+        this.update_btn = tk.Button(this.frame, text="SpanshRouter update available for download!", command=goto_update_page)
+        this.update_btn.grid(row=5, pady=5, columnspan=2)
 
     update_gui()
 

@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.1
+
+- Added update button which opens the releases page
+
 ## 1.2.0
 
 - Added "Clear route" button
