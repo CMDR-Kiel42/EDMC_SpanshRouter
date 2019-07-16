@@ -12,6 +12,7 @@ class AutoCompleter(Entry):
     def __init__(self, parent, **kwargs):
         self.parent = parent
         Entry.__init__(self, parent, **kwargs)
+        self.lb = Listbox(self.parent)
         self.lb_up = False
         self.has_selected = False
         self.queue = Queue.Queue()
@@ -35,13 +36,11 @@ class AutoCompleter(Entry):
             if self.lb_up:
                 self.selection()
         elif key == 'Escape' and self.lb_up:
-            self.lb.destroy()
-            self.lb_up = False
+            self.hide_list()
 
     def changed(self, name, index, mode):
         if self.var.get().__len__() < 3 and self.lb_up or self.has_selected:
-            self.lb.destroy()
-            self.lb_up = False
+            self.hide_list
             self.has_selected = False
         else:
             t = threading.Thread(target=self.query_systems)
@@ -51,8 +50,7 @@ class AutoCompleter(Entry):
         if self.lb_up:
             self.has_selected = True
             self.var.set(self.lb.get(ACTIVE))
-            self.lb.destroy()
-            self.lb_up = False
+            self.hide_list()
             self.icursor(END)
 
     def up(self):
@@ -83,19 +81,30 @@ class AutoCompleter(Entry):
             self.query_systems()
 
     def show_results(self, results):
-        if results:            
-            if not self.lb_up:
-                self.lb = Listbox(self.parent)
-                self.lb.place(x=self.winfo_x(), y=self.winfo_y()+self.winfo_height())
-                self.lb_up = True
-            
+        if results:
             self.lb.delete(0, END)
             for w in results:
                 self.lb.insert(END,w)
+
+            sortedwords = sorted(results, key=len)
+            longestlen = len(sortedwords[-1])
+            self.show_list(longestlen, len(results))
         else:
             if self.lb_up:
-                self.lb.destroy()
-                self.lb_up = False
+                self.hide_list()
+
+    def show_list(self, width, height):
+        self["width"] = width
+        self.lb["height"] = height
+        print(self.lb.size())
+        if not self.lb_up:
+            self.lb.grid(row=self.grid_info()["row"]+1, columnspan=2)
+            self.lb_up = True
+
+    def hide_list(self):
+        if self.lb_up:
+            self.lb.grid_remove()
+            self.lb_up = False
 
     def query_systems(self):
         inp = self.var.get()
