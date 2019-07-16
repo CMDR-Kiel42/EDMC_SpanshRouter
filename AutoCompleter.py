@@ -9,8 +9,9 @@ import os
 import requests
 
 class AutoCompleter(Entry):
-    def __init__(self, *args, **kwargs):
-        Entry.__init__(self, *args, **kwargs)
+    def __init__(self, parent, **kwargs):
+        self.parent = parent
+        Entry.__init__(self, parent, **kwargs)
         self.lb_up = False
         self.has_selected = False
         self.queue = Queue.Queue()
@@ -31,7 +32,11 @@ class AutoCompleter(Entry):
         elif key == 'Up':
             self.up()
         elif key in ['Return', 'Right']:
-            self.selection()
+            if self.lb_up:
+                self.selection()
+        elif key == 'Escape' and self.lb_up:
+            self.lb.destroy()
+            self.lb_up = False
 
     def changed(self, name, index, mode):
         if self.var.get().__len__() < 3 and self.lb_up or self.has_selected:
@@ -74,11 +79,13 @@ class AutoCompleter(Entry):
     
             self.lb.selection_set(first=index)
             self.lb.activate(index)
+        else:
+            self.query_systems()
 
     def show_results(self, results):
         if results:            
             if not self.lb_up:
-                self.lb = Listbox()
+                self.lb = Listbox(self.parent)
                 self.lb.place(x=self.winfo_x(), y=self.winfo_y()+self.winfo_height())
                 self.lb_up = True
             
@@ -91,14 +98,16 @@ class AutoCompleter(Entry):
                 self.lb_up = False
 
     def query_systems(self):
-        url = "https://spansh.co.uk/api/systems?"
-        results = requests.get(url, 
-              params={'q': self.var.get()}, 
-              headers={'User-Agent': "EDMC_SpanshRouter 1.0"})
+        inp = self.var.get()
+        if inp.__len__() >= 3:
+            url = "https://spansh.co.uk/api/systems?"
+            results = requests.get(url, 
+                params={'q': inp}, 
+                headers={'User-Agent': "EDMC_SpanshRouter 1.0"})
 
-        lista = json.loads(results.content)
-        if lista:
-            self.write(lista)
+            lista = json.loads(results.content)
+            if lista:
+                self.write(lista)
 
     def write(self, lista):
         self.queue.put(lista)
