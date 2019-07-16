@@ -7,34 +7,26 @@ from time import sleep
 import json
 import os
 import requests
+from PlaceHolder import PlaceHolder
 
-class AutoCompleter(Entry):
+class AutoCompleter(Entry, PlaceHolder):
     def __init__(self, parent, placeholder, **kw):
         Entry.__init__(self, parent, **kw)
-        self.parent = parent
-        self.placeholder = placeholder
-        self.placeholder_color = "grey"
-        self.default_fg_color = self['fg']
+        self.var = self["textvariable"] = StringVar()
+        self.var.trace('w', self.changed)
 
-        self.bind("<FocusIn>", self.foc_in)
-        self.bind("<FocusOut>", self.foc_out)
+        self.parent = parent
 
         self.lb = Listbox(self.parent)
         self.lb_up = False
         self.has_selected = False
         self.queue = Queue.Queue()
 
-        self.var = self["textvariable"] = StringVar()
+        PlaceHolder.__init__(self, placeholder)
 
-        self.var.trace('w', self.changed)
-        self.put_placeholder()
         self.bind("<Any-Key>", self.keypressed)
         
         self.update_me()
-
-    def put_placeholder(self):
-        self['fg'] = self.placeholder_color
-        self.insert(0, self.placeholder)
 
     def keypressed(self, event):
         key=event.keysym
@@ -48,15 +40,6 @@ class AutoCompleter(Entry):
         elif key == 'Escape' and self.lb_up:
             self.hide_list()
 
-    def foc_in(self, *args):
-        if self['fg'] == self.placeholder_color or self.get() == self.placeholder:
-            self.delete('0', 'end')
-            self['fg'] = self.default_fg_color
-
-    def foc_out(self, *args):
-        if not self.get():
-            self.put_placeholder()
-            
     def changed(self, name, index, mode):
         if self.var.get().__len__() < 3 and self.lb_up or self.has_selected:
             self.hide_list
