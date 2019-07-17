@@ -1,14 +1,14 @@
 import Tkinter as tk
 import tkFileDialog as filedialog
 import tkMessageBox as confirmDialog
-from ttkHyperlinkLabel import HyperlinkLabel
 import sys
 import csv
 import os
-from monitor import monitor
 import urllib
 import json
 import webbrowser
+from AutoCompleter import AutoCompleter
+from PlaceHolderEntry import PlaceHolderEntry
 
 if sys.platform.startswith('linux'):
     import subprocess
@@ -109,7 +109,34 @@ def update_gui():
 
         this.clear_route_btn.grid()
         
+def show_plot_gui(show=True):
+    if show:
+        this.plot_gui_btn.grid_remove()
+        this.csv_route_btn.grid_remove()
+        this.source_ac.grid()
+        this.dest_ac.grid()
+        this.range_entry.grid()
+        this.efficiency_slider.grid()
+        this.plot_route_btn.grid()
+        this.cancel_plot.grid()
 
+        # Workaround because EDMC keeps switching the placeholder to bright white
+        this.source_ac.force_placeholder_color()
+        this.dest_ac.force_placeholder_color()
+        this.range_entry.force_placeholder_color()
+
+    else:
+        this.source_ac.put_placeholder()
+        this.dest_ac.put_placeholder()
+        this.source_ac.grid_remove()
+        this.dest_ac.grid_remove()
+        this.range_entry.grid_remove()
+        this.efficiency_slider.grid_remove()
+        this.plot_gui_btn.grid_remove()
+        this.plot_route_btn.grid_remove()
+        this.cancel_plot.grid_remove()
+        this.plot_gui_btn.grid()
+        this.csv_route_btn.grid()
 
 def copy_waypoint(self=None):
     if sys.platform == "win32":
@@ -128,7 +155,7 @@ def goto_prev_waypoint(self=None):
     if this.offset > 0:
         update_route(-1)
 
-def new_route(self=None):
+def plot_csv(self=None):
     filename = filedialog.askopenfilename(filetypes = (("csv files", "*.csv"),))    # show an "Open" dialog box and return the path to the selected file
 
     if filename.__len__() > 0:
@@ -148,6 +175,9 @@ def new_route(self=None):
         copy_waypoint()
         update_gui()
 
+def plot_route(self=None):
+    show_plot_gui(False)
+
 def clear_route(self=None):
     clear = confirmDialog.askyesno("SpanshRouter","Are you sure you want to clear the current route?")
 
@@ -166,7 +196,6 @@ def clear_route(self=None):
 
         update_gui()
 
-
 def update_route(direction=1):
     if direction > 0:
         this.jumps_left -= int(this.route[this.offset][1])
@@ -183,7 +212,6 @@ def update_route(direction=1):
         update_gui()
         copy_waypoint(this.parent)
 
-
 def journal_entry(cmdr, is_beta, system, station, entry, state):
     if (entry['event'] == 'FSDJump' or entry['event'] == 'Location') and entry["StarSystem"] == this.next_stop:
         update_route()
@@ -192,30 +220,59 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
     elif entry['event'] == 'FSSDiscoveryScan' and entry['SystemName'] == this.next_stop:
         update_route()
 
-
 def goto_update_page(self=None):
     webbrowser.open('https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases')
 
-
 def plugin_app(parent):
     this.parent = parent
-    this.frame = tk.Frame(parent)
-    
+    parentwidth = parent.winfo_width()
+    this.frame = tk.Frame(parent, borderwidth=2)
+    this.frame.grid(sticky=tk.NSEW)
+
+    # Route info
     this.waypoint_prev_btn = tk.Button(this.frame, text="^", command=goto_prev_waypoint)
     this.waypoint_btn = tk.Button(this.frame, text=this.next_wp_label + this.next_stop, command=copy_waypoint)
     this.waypoint_next_btn = tk.Button(this.frame, text="v", command=goto_next_waypoint)
+    this.jumpcounttxt_lbl = tk.Label(this.frame, text=this.jumpcountlbl_txt + str(this.jumps_left))
 
-    this.upload_route_btn = tk.Button(this.frame, text="Upload new route", command=new_route)
+    # Plotting GUI
+    this.source_ac = AutoCompleter(this.frame, "Source System", width=30)
+    this.dest_ac = AutoCompleter(this.frame, "Destination System", width=30)
+    this.range_entry = PlaceHolderEntry(this.frame, "Range (LY)", width=10)
+    this.efficiency_slider = tk.Scale(this.frame, from_=1, to=100, orient=tk.HORIZONTAL, label="Efficiency (%)")
+    this.plot_gui_btn = tk.Button(this.frame, text="Plot route", command=show_plot_gui)
+    this.plot_route_btn = tk.Button(this.frame, text="Calculate", command=plot_route)
+    this.cancel_plot = tk.Button(this.frame, text="Cancel", command=lambda: show_plot_gui(False))
+    
+    this.csv_route_btn = tk.Button(this.frame, text="Import CSV", command=plot_csv)
     this.clear_route_btn = tk.Button(this.frame, text="Clear route", command=clear_route)
 
-    this.waypoint_prev_btn.grid(row=0, columnspan=2)
-    this.waypoint_btn.grid(row=1, columnspan=2)
-    this.waypoint_next_btn.grid(row=2, columnspan=2)
-    this.upload_route_btn.grid(row=3, pady=10, padx=0)
-    this.clear_route_btn.grid(row=3,column=1)
+    row = 0
+    this.waypoint_prev_btn.grid(row=row, columnspan=2)
+    row += 1
+    this.waypoint_btn.grid(row=row, columnspan=2)
+    row += 1
+    this.waypoint_next_btn.grid(row=row, columnspan=2)
+    row += 1
+    this.source_ac.grid(row=row,columnspan=2, pady=(10,0)) # The AutoCompleter takes two rows to show the list when needed, so we skip one
+    row += 2
+    this.dest_ac.grid(row=row,columnspan=2, pady=(10,0))
+    row += 2
+    this.range_entry.grid(row=row, pady=10, sticky=tk.W)
+    row += 1
+    this.efficiency_slider.grid(row=row, pady=10, columnspan=2, sticky=tk.EW)
+    row += 1
+    this.csv_route_btn.grid(row=row, pady=10, padx=0)
+    this.plot_route_btn.grid(row=row, pady=10, padx=0)
+    this.plot_gui_btn.grid(row=row, column=1, pady=10, padx=5, sticky=tk.W)
+    this.cancel_plot.grid(row=row, column=1, pady=10, padx=5, sticky=tk.E)
+    row += 1
+    this.clear_route_btn.grid(row=row,column=1)
+    row += 1
+    this.jumpcounttxt_lbl.grid(row=row, pady=5, sticky=tk.W)
+    row += 1
 
-    this.jumpcounttxt_lbl = tk.Label(this.frame, text=this.jumpcountlbl_txt + str(this.jumps_left))
-    this.jumpcounttxt_lbl.grid(row=4, pady=5, sticky=tk.W)
+    show_plot_gui(False)
 
     if not this.route.__len__() > 0:
         this.waypoint_prev_btn.grid_remove()
@@ -226,7 +283,8 @@ def plugin_app(parent):
 
     if this.update_available:
         this.update_btn = tk.Button(this.frame, text="SpanshRouter update available for download!", command=goto_update_page)
-        this.update_btn.grid(row=5, pady=5, columnspan=2)
+        this.update_btn.grid(row=row, pady=5, columnspan=2)
+        row += 1
 
     update_gui()
 
