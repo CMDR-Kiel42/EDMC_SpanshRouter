@@ -15,6 +15,9 @@ class PlaceHolder():
         self['fg'] = self.placeholder_color
         self.insert(0, self.placeholder)
 
+    def force_placeholder_color(self):
+        self['fg'] = self.placeholder_color
+
     def foc_in(self, *args):
         if self['fg'] == self.placeholder_color or self.get() == self.placeholder:
             self.delete('0', 'end')
