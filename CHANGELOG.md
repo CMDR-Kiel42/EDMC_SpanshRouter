@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.0.0
+
+- You can now plot your route directly from EDMC
+- A few bugs were fixed
+
 ## 1.2.1
 
 - Added update button which opens the releases page
