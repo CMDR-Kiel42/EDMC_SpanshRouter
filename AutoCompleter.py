@@ -25,6 +25,7 @@ class AutoCompleter(Entry, PlaceHolder):
         PlaceHolder.__init__(self, placeholder)
 
         self.bind("<Any-Key>", self.keypressed)
+        self.bind('<Control-KeyRelease-a>', self.select_all)
         self.lb.bind("<Double-Button-1>", self.selection)
         
         self.update_me()
@@ -40,6 +41,9 @@ class AutoCompleter(Entry, PlaceHolder):
                 self.selection()
         elif key == 'Escape' and self.lb_up:
             self.hide_list()
+    
+    def select_all(self, event):
+        event.widget.event_generate('<<SelectAll>>')
 
     def changed(self, name, index, mode):
         if self.var.get().__len__() < 3 and self.lb_up or self.has_selected:
