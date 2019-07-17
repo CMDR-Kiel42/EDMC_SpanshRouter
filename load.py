@@ -7,6 +7,7 @@ import os
 import urllib
 import json
 import webbrowser
+import requests
 from AutoCompleter import AutoCompleter
 from PlaceHolderEntry import PlaceHolderEntry
 
@@ -176,7 +177,58 @@ def plot_csv(self=None):
         update_gui()
 
 def plot_route(self=None):
-    show_plot_gui(False)
+    try:
+        source = this.source_ac.get()
+        dest = this.dest_ac.get()
+        efficiency = this.efficiency_slider.get()
+
+        if (    source  and source != this.source_ac.placeholder and
+                dest    and dest != this.dest_ac.placeholder    ):
+            range_ly = float(this.range_entry.get())
+
+            job_url="https://spansh.co.uk/api/route?"
+
+            results = requests.post(job_url, params={
+                "efficiency": efficiency,
+                "range": range_ly,
+                "from": source,
+                "to": dest
+            }, headers={'User-Agent': "EDMC_SpanshRouter 1.0"})
+
+            if results.status_code == 202:
+                this.source_ac.config(state=tk.DISABLED)
+                this.source_ac.update_idletasks()
+                this.dest_ac.config(state=tk.DISABLED)
+                this.dest_ac.update_idletasks()
+                this.efficiency_slider.config(state=tk.DISABLED)
+                this.efficiency_slider.update_idletasks()
+                this.range_entry.config(state=tk.DISABLED)
+                this.range_entry.update_idletasks()
+                this.plot_route_btn.config(state=tk.DISABLED, text="Computing...")
+                this.plot_route_btn.update_idletasks()
+                this.cancel_plot.config(state=tk.DISABLED)
+                this.cancel_plot.update_idletasks()
+
+                while(True):
+                    response = json.loads(results.content)
+                    job = response["job"]
+
+                    results_url = "https://spansh.co.uk/api/results/" + job
+                    route_response = requests.get(results_url)
+                    if route_response.status_code != 202:
+                        break
+
+                if route_response.status_code == 200:
+                    route = json.loads(route_response.content)
+                    print(route)
+                    show_plot_gui(False)
+                else:
+                    sys.stderr.write("Failed to query plotted route from Spansh: code " + str(route_response.status_code) + route_response.text)
+            else:
+                sys.stderr.write("Failed to query route from Spansh: code " + str(results.status_code) + results.text)
+
+    except:
+        pass
 
 def clear_route(self=None):
     clear = confirmDialog.askyesno("SpanshRouter","Are you sure you want to clear the current route?")
@@ -240,6 +292,7 @@ def plugin_app(parent):
     this.dest_ac = AutoCompleter(this.frame, "Destination System", width=30)
     this.range_entry = PlaceHolderEntry(this.frame, "Range (LY)", width=10)
     this.efficiency_slider = tk.Scale(this.frame, from_=1, to=100, orient=tk.HORIZONTAL, label="Efficiency (%)")
+    this.efficiency_slider.set(60)
     this.plot_gui_btn = tk.Button(this.frame, text="Plot route", command=show_plot_gui)
     this.plot_route_btn = tk.Button(this.frame, text="Calculate", command=plot_route)
     this.cancel_plot = tk.Button(this.frame, text="Cancel", command=lambda: show_plot_gui(False))
