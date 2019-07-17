@@ -131,9 +131,12 @@ def show_plot_gui(show=True):
         this.cancel_plot.grid()
 
         # Workaround because EDMC keeps switching the placeholder to bright white
-        this.source_ac.force_placeholder_color()
-        this.dest_ac.force_placeholder_color()
-        this.range_entry.force_placeholder_color()
+        if this.source_ac.get() == this.source_ac.placeholder:
+            this.source_ac.force_placeholder_color()
+        if this.dest_ac.get() == this.dest_ac.placeholder:
+            this.dest_ac.force_placeholder_color()
+        if this.range_entry.get() == this.range_entry.placeholder:
+            this.range_entry.force_placeholder_color()
         show_route_gui(False)
 
     else:
@@ -303,6 +306,10 @@ def update_route(direction=1):
         copy_waypoint(this.parent)
 
 def journal_entry(cmdr, is_beta, system, station, entry, state):
+    if entry["StarSystem"]:
+        this.source_ac.delete(0, tk.END)
+        this.source_ac.insert(0, entry["StarSystem"])
+        this.source_ac["fg"] = this.source_ac.default_fg_color
     if (entry['event'] == 'FSDJump' or entry['event'] == 'Location') and entry["StarSystem"] == this.next_stop:
         update_route()
     elif entry['event'] in ['SupercruiseEntry', 'SupercruiseExit'] and entry['StarSystem'] == this.next_stop:

@@ -132,7 +132,6 @@ class AutoCompleter(Entry, PlaceHolder):
             while 1:
                 lista = self.queue.get_nowait()
                 self.show_results(lista)
-                        
                 self.update_idletasks()
         except Queue.Empty:
             pass
