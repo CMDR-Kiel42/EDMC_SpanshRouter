@@ -16,7 +16,7 @@ if sys.platform.startswith('linux'):
 
 
 this = sys.modules[__name__]
-this.plugin_version = "1.2.1"
+this.plugin_version = "2.0.0"
 this.update_available = False
 this.next_stop = "No route planned"
 this.route = []
