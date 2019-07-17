@@ -95,7 +95,6 @@ class AutoCompleter(Entry, PlaceHolder):
 
     def show_list(self, height):
         self.lb["height"] = height
-        print(self.lb.size())
         if not self.lb_up:
             self.lb.grid(row=self.grid_info()["row"]+1, columnspan=2)
             self.lb_up = True
