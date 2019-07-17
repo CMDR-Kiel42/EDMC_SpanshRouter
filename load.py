@@ -82,8 +82,8 @@ def plugin_stop():
             print("No route to delete")
 
 
-def update_gui():
-    if not this.route.__len__() > 0:
+def show_route_gui(show):
+    if not show or not this.route.__len__() > 0:
         this.waypoint_prev_btn.grid_remove()
         this.waypoint_btn.grid_remove()
         this.waypoint_next_btn.grid_remove()
@@ -109,9 +109,18 @@ def update_gui():
                 this.waypoint_next_btn.config(state=tk.NORMAL)
 
         this.clear_route_btn.grid()
-        
+
+def update_gui():
+    show_route_gui(True)
+
 def show_plot_gui(show=True):
     if show:
+        this.waypoint_prev_btn.grid_remove()
+        this.waypoint_btn.grid_remove()
+        this.waypoint_next_btn.grid_remove()
+        this.jumpcounttxt_lbl.grid_remove()
+        this.clear_route_btn.grid_remove()
+
         this.plot_gui_btn.grid_remove()
         this.csv_route_btn.grid_remove()
         this.source_ac.grid()
@@ -125,6 +134,7 @@ def show_plot_gui(show=True):
         this.source_ac.force_placeholder_color()
         this.dest_ac.force_placeholder_color()
         this.range_entry.force_placeholder_color()
+        show_route_gui(False)
 
     else:
         this.source_ac.put_placeholder()
@@ -138,6 +148,7 @@ def show_plot_gui(show=True):
         this.cancel_plot.grid_remove()
         this.plot_gui_btn.grid()
         this.csv_route_btn.grid()
+        show_route_gui(True)
 
 def copy_waypoint(self=None):
     if sys.platform == "win32":
@@ -176,6 +187,34 @@ def plot_csv(self=None):
         copy_waypoint()
         update_gui()
 
+def enable_plot_gui(enable):
+    if enable:
+        this.source_ac.config(state=tk.NORMAL)
+        this.source_ac.update_idletasks()
+        this.dest_ac.config(state=tk.NORMAL)
+        this.dest_ac.update_idletasks()
+        this.efficiency_slider.config(state=tk.NORMAL)
+        this.efficiency_slider.update_idletasks()
+        this.range_entry.config(state=tk.NORMAL)
+        this.range_entry.update_idletasks()
+        this.plot_route_btn.config(state=tk.NORMAL, text="Calculate")
+        this.plot_route_btn.update_idletasks()
+        this.cancel_plot.config(state=tk.NORMAL)
+        this.cancel_plot.update_idletasks()
+    else:
+        this.source_ac.config(state=tk.DISABLED)
+        this.source_ac.update_idletasks()
+        this.dest_ac.config(state=tk.DISABLED)
+        this.dest_ac.update_idletasks()
+        this.efficiency_slider.config(state=tk.DISABLED)
+        this.efficiency_slider.update_idletasks()
+        this.range_entry.config(state=tk.DISABLED)
+        this.range_entry.update_idletasks()
+        this.plot_route_btn.config(state=tk.DISABLED, text="Computing...")
+        this.plot_route_btn.update_idletasks()
+        this.cancel_plot.config(state=tk.DISABLED)
+        this.cancel_plot.update_idletasks()
+
 def plot_route(self=None):
     try:
         source = this.source_ac.get()
@@ -196,18 +235,7 @@ def plot_route(self=None):
             }, headers={'User-Agent': "EDMC_SpanshRouter 1.0"})
 
             if results.status_code == 202:
-                this.source_ac.config(state=tk.DISABLED)
-                this.source_ac.update_idletasks()
-                this.dest_ac.config(state=tk.DISABLED)
-                this.dest_ac.update_idletasks()
-                this.efficiency_slider.config(state=tk.DISABLED)
-                this.efficiency_slider.update_idletasks()
-                this.range_entry.config(state=tk.DISABLED)
-                this.range_entry.update_idletasks()
-                this.plot_route_btn.config(state=tk.DISABLED, text="Computing...")
-                this.plot_route_btn.update_idletasks()
-                this.cancel_plot.config(state=tk.DISABLED)
-                this.cancel_plot.update_idletasks()
+                enable_plot_gui(False)
 
                 while(True):
                     response = json.loads(results.content)
@@ -220,12 +248,11 @@ def plot_route(self=None):
 
                 if route_response.status_code == 200:
                     route = json.loads(route_response.content)["result"]["system_jumps"]
-
-                    this.jumps_left = 0
+                    clear_route(show_dialog=False)
                     for waypoint in route:
                         this.route.append([waypoint["system"], str(waypoint["jumps"])])
                         this.jumps_left += waypoint["jumps"]
-
+                    enable_plot_gui(True)
                     show_plot_gui(False)
                     this.offset = 0
                     this.next_stop = this.route[0][0]
@@ -239,13 +266,15 @@ def plot_route(self=None):
     except:
         pass
 
-def clear_route(self=None):
-    clear = confirmDialog.askyesno("SpanshRouter","Are you sure you want to clear the current route?")
+def clear_route(self=None, show_dialog=True):
+    print("Show dialog =" + str(show_dialog))
+    clear = confirmDialog.askyesno("SpanshRouter","Are you sure you want to clear the current route?") if show_dialog else True
 
     if clear:
         this.offset = 0
         this.route = []
         this.next_waypoint = ""
+        this.jumps_left = 0
         try:
             os.remove(this.save_route_path)
         except:
