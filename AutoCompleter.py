@@ -17,7 +17,7 @@ class AutoCompleter(Entry, PlaceHolder):
 
         self.parent = parent
 
-        self.lb = Listbox(self.parent)
+        self.lb = Listbox(self.parent, **kw)
         self.lb_up = False
         self.has_selected = False
         self.queue = Queue.Queue()
@@ -42,7 +42,7 @@ class AutoCompleter(Entry, PlaceHolder):
 
     def changed(self, name, index, mode):
         if self.var.get().__len__() < 3 and self.lb_up or self.has_selected:
-            self.hide_list
+            self.hide_list()
             self.has_selected = False
         else:
             t = threading.Thread(target=self.query_systems)
@@ -88,15 +88,12 @@ class AutoCompleter(Entry, PlaceHolder):
             for w in results:
                 self.lb.insert(END,w)
 
-            sortedwords = sorted(results, key=len)
-            longestlen = len(sortedwords[-1])
-            self.show_list(longestlen, len(results))
+            self.show_list(len(results))
         else:
             if self.lb_up:
                 self.hide_list()
 
-    def show_list(self, width, height):
-        self["width"] = width
+    def show_list(self, height):
         self.lb["height"] = height
         print(self.lb.size())
         if not self.lb_up:
