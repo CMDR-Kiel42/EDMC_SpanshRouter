@@ -1,4 +1,5 @@
 from config import config
+from Tkinter import END
 
 class PlaceHolder():
     def __init__(self, placeholder, **kw):
@@ -13,7 +14,9 @@ class PlaceHolder():
 
     def put_placeholder(self):
         self['fg'] = self.placeholder_color
-        self.insert(0, self.placeholder)
+        if self.get() != self.placeholder:
+            self.delete(0, END)
+            self.insert(0, self.placeholder)
 
     def force_placeholder_color(self):
         self['fg'] = self.placeholder_color
