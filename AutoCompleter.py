@@ -25,6 +25,7 @@ class AutoCompleter(Entry, PlaceHolder):
         PlaceHolder.__init__(self, placeholder)
 
         self.bind("<Any-Key>", self.keypressed)
+        self.lb.bind("<Double-Button-1>", self.selection)
         
         self.update_me()
 
