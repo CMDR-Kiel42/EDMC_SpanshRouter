@@ -219,9 +219,18 @@ def plot_route(self=None):
                         break
 
                 if route_response.status_code == 200:
-                    route = json.loads(route_response.content)
-                    print(route)
+                    route = json.loads(route_response.content)["result"]["system_jumps"]
+
+                    this.jumps_left = 0
+                    for waypoint in route:
+                        this.route.append([waypoint["system"], str(waypoint["jumps"])])
+                        this.jumps_left += waypoint["jumps"]
+
                     show_plot_gui(False)
+                    this.offset = 0
+                    this.next_stop = this.route[0][0]
+                    copy_waypoint()
+                    update_gui()
                 else:
                     sys.stderr.write("Failed to query plotted route from Spansh: code " + str(route_response.status_code) + route_response.text)
             else:
