@@ -306,14 +306,11 @@ def update_route(direction=1):
         copy_waypoint(this.parent)
 
 def journal_entry(cmdr, is_beta, system, station, entry, state):
-    if entry["StarSystem"]:
+    if (entry['event'] in ['FSDJump', 'Location', 'SupercruiseEntry', 'SupercruiseExit']) and entry["StarSystem"] == this.next_stop:
+        update_route()
         this.source_ac.delete(0, tk.END)
         this.source_ac.insert(0, entry["StarSystem"])
         this.source_ac["fg"] = this.source_ac.default_fg_color
-    if (entry['event'] == 'FSDJump' or entry['event'] == 'Location') and entry["StarSystem"] == this.next_stop:
-        update_route()
-    elif entry['event'] in ['SupercruiseEntry', 'SupercruiseExit'] and entry['StarSystem'] == this.next_stop:
-        update_route()
     elif entry['event'] == 'FSSDiscoveryScan' and entry['SystemName'] == this.next_stop:
         update_route()
 

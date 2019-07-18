@@ -101,8 +101,10 @@ class AutoCompleter(Entry, PlaceHolder):
     def show_list(self, height):
         self.lb["height"] = height
         if not self.lb_up:
-            self.lb.grid(row=self.grid_info()["row"]+1, columnspan=2)
-            self.lb_up = True
+            info = self.grid_info()
+            if info:
+                self.lb.grid(row=info["row"]+1, columnspan=2)
+                self.lb_up = True
 
     def hide_list(self):
         if self.lb_up:
