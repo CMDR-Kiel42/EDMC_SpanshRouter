@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.0.1
+
+- Add an error prompt when things go wrong while plotting a route
+- Add requests timeout to prevent the plugin from hanging
+- Better recovery from errors
+
 ## 2.0.0
 
 - You can now plot your route directly from EDMC
