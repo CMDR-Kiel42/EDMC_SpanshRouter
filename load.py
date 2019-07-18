@@ -28,6 +28,8 @@ this.save_route_path = ""
 this.offset_file_path = ""
 this.offset = 0
 this.jumps_left = 0
+this.error_txt = tk.StringVar()
+this.plot_error = "Error while trying to plot a route, please try again."
 
 
 def plugin_start(plugin_dir):
@@ -90,7 +92,15 @@ def plugin_stop():
             print("No route to delete")
 
 
+def show_error(error):
+    this.error_txt.set(error)
+    this.error_lbl.grid()
+
+def hide_error():
+    this.error_lbl.grid_remove()
+
 def show_route_gui(show):
+    hide_error()
     if not show or not this.route.__len__() > 0:
         this.waypoint_prev_btn.grid_remove()
         this.waypoint_btn.grid_remove()
@@ -227,6 +237,7 @@ def enable_plot_gui(enable):
         this.cancel_plot.update_idletasks()
 
 def plot_route(self=None):
+    hide_error()
     try:
         source = this.source_ac.get()
         dest = this.dest_ac.get()
@@ -247,23 +258,18 @@ def plot_route(self=None):
 
             if results.status_code == 202:
                 enable_plot_gui(False)
-
+                
                 tries = 0
-                while(tries < 10):
+                while(tries < 20):
                     response = json.loads(results.content)
                     job = response["job"]
 
                     results_url = "https://spansh.co.uk/api/results/" + job
-                    try:
-                        route_response = requests.get(results_url, timeout=5)
-                        if route_response.status_code != 202:
-                            break
-                        tries += 1
-                        sleep(1)
-                    except NameError:
-                        exc_type, exc_value, exc_traceback = sys.exc_info()
-                        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                        sys.stderr.write(''.join('!! ' + line for line in lines))
+                    route_response = requests.get(results_url, timeout=5)
+                    if route_response.status_code != 202:
+                        break
+                    tries += 1
+                    sleep(1)
 
                 if route_response:
                     if route_response.status_code == 200:
@@ -281,17 +287,21 @@ def plot_route(self=None):
                     else:
                         sys.stderr.write("Failed to query plotted route from Spansh: code " + str(route_response.status_code) + route_response.text)
                         enable_plot_gui(True)
+                        show_error(this.plot_error)
                 else:
-                        sys.stderr.write("Query to Spansh timed out")
-                        enable_plot_gui(True)
+                    sys.stderr.write("Query to Spansh timed out")
+                    enable_plot_gui(True)
+                    show_error(this.plot_error)
             else:
                 sys.stderr.write("Failed to query route from Spansh: code " + str(results.status_code) + results.text)
                 enable_plot_gui(True)
+                show_error(this.plot_error)
     except NameError:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         sys.stderr.write(''.join('!! ' + line for line in lines))
         enable_plot_gui(True)
+        show_error(this.plot_error)
 
 def clear_route(self=None, show_dialog=True):
     clear = confirmDialog.askyesno("SpanshRouter","Are you sure you want to clear the current route?") if show_dialog else True
@@ -351,6 +361,7 @@ def plugin_app(parent):
     this.waypoint_btn = tk.Button(this.frame, text=this.next_wp_label + this.next_stop, command=copy_waypoint)
     this.waypoint_next_btn = tk.Button(this.frame, text="v", command=goto_next_waypoint)
     this.jumpcounttxt_lbl = tk.Label(this.frame, text=this.jumpcountlbl_txt + str(this.jumps_left))
+    this.error_lbl = tk.Label(this.frame, textvariable=this.error_txt)
 
     # Plotting GUI
     this.source_ac = AutoCompleter(this.frame, "Source System", width=30)
@@ -388,6 +399,9 @@ def plugin_app(parent):
     this.clear_route_btn.grid(row=row,column=1)
     row += 1
     this.jumpcounttxt_lbl.grid(row=row, pady=5, sticky=tk.W)
+    row += 1
+    this.error_lbl.grid(row=row, columnspan=2)
+    this.error_lbl.grid_remove()
     row += 1
 
     show_plot_gui(False)
