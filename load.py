@@ -4,10 +4,11 @@ import tkMessageBox as confirmDialog
 import sys
 import csv
 import os
-import urllib
 import json
 import webbrowser
 import requests
+import traceback
+from time import sleep
 from AutoCompleter import AutoCompleter
 from PlaceHolderEntry import PlaceHolderEntry
 
@@ -32,11 +33,18 @@ this.jumps_left = 0
 def plugin_start(plugin_dir):
     # Check for newer versions
     url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/version.json"
-    response = urllib.urlopen(url)
-    latest_version = response.read()
-
-    if response.code == 200 and this.plugin_version != latest_version:
-        this.update_available = True
+    try:
+        response = requests.get(url, timeout=2)
+        
+        if response.status_code == 200:
+            if this.plugin_version != response.content:
+                this.update_available = True
+        else:
+            sys.stderr.write("Could not query latest version from GitHub: " + str(response.status_code) + response.text)
+    except NameError:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        sys.stderr.write(''.join('!! ' + line for line in lines))
 
     this.save_route_path = os.path.join(plugin_dir, 'route.csv')
     this.offset_file_path = os.path.join(plugin_dir, 'offset')
@@ -226,8 +234,8 @@ def plot_route(self=None):
 
         if (    source  and source != this.source_ac.placeholder and
                 dest    and dest != this.dest_ac.placeholder    ):
-            range_ly = float(this.range_entry.get())
 
+            range_ly = float(this.range_entry.get())
             job_url="https://spansh.co.uk/api/route?"
 
             results = requests.post(job_url, params={
@@ -240,37 +248,52 @@ def plot_route(self=None):
             if results.status_code == 202:
                 enable_plot_gui(False)
 
-                while(True):
+                tries = 0
+                while(tries < 10):
                     response = json.loads(results.content)
                     job = response["job"]
 
                     results_url = "https://spansh.co.uk/api/results/" + job
-                    route_response = requests.get(results_url)
-                    if route_response.status_code != 202:
-                        break
+                    try:
+                        route_response = requests.get(results_url, timeout=5)
+                        if route_response.status_code != 202:
+                            break
+                        tries += 1
+                        sleep(1)
+                    except NameError:
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                        sys.stderr.write(''.join('!! ' + line for line in lines))
 
-                if route_response.status_code == 200:
-                    route = json.loads(route_response.content)["result"]["system_jumps"]
-                    clear_route(show_dialog=False)
-                    for waypoint in route:
-                        this.route.append([waypoint["system"], str(waypoint["jumps"])])
-                        this.jumps_left += waypoint["jumps"]
-                    enable_plot_gui(True)
-                    show_plot_gui(False)
-                    this.offset = 0
-                    this.next_stop = this.route[0][0]
-                    copy_waypoint()
-                    update_gui()
+                if route_response:
+                    if route_response.status_code == 200:
+                        route = json.loads(route_response.content)["result"]["system_jumps"]
+                        clear_route(show_dialog=False)
+                        for waypoint in route:
+                            this.route.append([waypoint["system"], str(waypoint["jumps"])])
+                            this.jumps_left += waypoint["jumps"]
+                        enable_plot_gui(True)
+                        show_plot_gui(False)
+                        this.offset = 0
+                        this.next_stop = this.route[0][0]
+                        copy_waypoint()
+                        update_gui()
+                    else:
+                        sys.stderr.write("Failed to query plotted route from Spansh: code " + str(route_response.status_code) + route_response.text)
+                        enable_plot_gui(True)
                 else:
-                    sys.stderr.write("Failed to query plotted route from Spansh: code " + str(route_response.status_code) + route_response.text)
+                        sys.stderr.write("Query to Spansh timed out")
+                        enable_plot_gui(True)
             else:
                 sys.stderr.write("Failed to query route from Spansh: code " + str(results.status_code) + results.text)
-
-    except:
-        pass
+                enable_plot_gui(True)
+    except NameError:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        sys.stderr.write(''.join('!! ' + line for line in lines))
+        enable_plot_gui(True)
 
 def clear_route(self=None, show_dialog=True):
-    print("Show dialog =" + str(show_dialog))
     clear = confirmDialog.askyesno("SpanshRouter","Are you sure you want to clear the current route?") if show_dialog else True
 
     if clear:

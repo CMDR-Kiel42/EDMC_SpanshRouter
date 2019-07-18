@@ -1,12 +1,13 @@
 #!/usr/bin/env python2
 
-from Tkinter import *
 import threading
 import Queue
-from time import sleep
 import json
 import os
 import requests
+import traceback
+from Tkinter import *
+from time import sleep
 from PlaceHolder import PlaceHolder
 
 class AutoCompleter(Entry, PlaceHolder):
@@ -115,13 +116,19 @@ class AutoCompleter(Entry, PlaceHolder):
         inp = self.var.get()
         if inp != self.placeholder and inp.__len__() >= 3:
             url = "https://spansh.co.uk/api/systems?"
-            results = requests.get(url, 
-                params={'q': inp}, 
-                headers={'User-Agent': "EDMC_SpanshRouter 1.0"})
+            try:
+                results = requests.get(url, 
+                    params={'q': inp}, 
+                    headers={'User-Agent': "EDMC_SpanshRouter 1.0"},
+                    timeout=3)
 
-            lista = json.loads(results.content)
-            if lista:
-                self.write(lista)
+                lista = json.loads(results.content)
+                if lista:
+                    self.write(lista)
+            except NameError:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                sys.stderr.write(''.join('!! ' + line for line in lines))
 
     def write(self, lista):
         self.queue.put(lista)
