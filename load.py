@@ -8,6 +8,7 @@ import json
 import webbrowser
 import requests
 import traceback
+import subprocess
 from time import sleep
 from AutoCompleter import AutoCompleter
 from PlaceHolderEntry import PlaceHolderEntry
@@ -41,6 +42,9 @@ def plugin_start(plugin_dir):
         if response.status_code == 200:
             if this.plugin_version != response.content:
                 this.update_available = True
+                pid = os.getpid()
+                print("PID: " + str(pid))
+                subprocess.Popen(["./updater.py", "--pid=" + str(pid), "--version=" + response.content])
         else:
             sys.stderr.write("Could not query latest version from GitHub: " + str(response.status_code) + response.text)
     except NameError:
