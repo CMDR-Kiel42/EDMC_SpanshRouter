@@ -27,6 +27,9 @@ class SpanshUpdater():
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             sys.stderr.write(''.join('!! ' + line for line in lines))
             self.zip_downloaded = False
+        finally:
+            return self.zip_downloaded
+
 
     def install(self):
         if self.zip_downloaded:

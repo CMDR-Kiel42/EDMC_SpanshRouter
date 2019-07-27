@@ -41,39 +41,41 @@ def plugin_start(plugin_dir):
             if this.plugin_version != response.content:
                 this.update_available = True
                 this.spansh_updater = SpanshUpdater(response.content)
-                this.spansh_updater.download_zip()
+                
+                if not this.spansh_updater.download_zip():
+                    sys.stderr.write("Error when downloading the latest SpanshRouter update")
         else:
-            sys.stderr.write("Could not query latest version from GitHub: " + str(response.status_code) + response.text)
+            sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
     except NameError:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         sys.stderr.write(''.join('!! ' + line for line in lines))
+    finally:
+        this.save_route_path = os.path.join(plugin_dir, 'route.csv')
+        this.offset_file_path = os.path.join(plugin_dir, 'offset')
 
-    this.save_route_path = os.path.join(plugin_dir, 'route.csv')
-    this.offset_file_path = os.path.join(plugin_dir, 'offset')
+        try:
+            # Open the last saved route
+            with open(this.save_route_path, 'r') as csvfile:
+                route_reader = csv.reader(csvfile)
 
-    try:
-        # Open the last saved route
-        with open(this.save_route_path, 'r') as csvfile:
-            route_reader = csv.reader(csvfile)
+                for row in route_reader:
+                    this.route.append(row)
 
-            for row in route_reader:
-                this.route.append(row)
+                try:
+                    with open(this.offset_file_path, 'r') as offset_fh:
+                        this.offset = int(offset_fh.readline())
 
-            try:
-                with open(this.offset_file_path, 'r') as offset_fh:
-                    this.offset = int(offset_fh.readline())
+                except:
+                    this.offset = 0
 
-            except:
-                this.offset = 0
+            for row in this.route[this.offset:]:
+                this.jumps_left += int(row[1])
 
-        for row in this.route[this.offset:]:
-            this.jumps_left += int(row[1])
-
-        this.next_stop = this.route[this.offset][0]
-        copy_waypoint()
-    except:
-        print("No previously saved route.")
+            this.next_stop = this.route[this.offset][0]
+            copy_waypoint()
+        except:
+            print("No previously saved route.")
 
 def plugin_stop():
     if this.route.__len__() != 0:
