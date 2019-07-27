@@ -2,41 +2,40 @@
 
 import os
 import requests
-import sys
-import argparse
-import time
 import zipfile
 
-def is_running(pid):        
-    try:
-        os.kill(pid, 0)
-    except OSError:
-        return False
+class SpanshUpdater():
+    def __init__(self, version):
+        self.version = version
+        self.zip_name = "EDMC_SpanshRouter_" + version.replace('.', '') + ".zip"
+        self.zip_downloaded = False
 
-    return True
+    def download_zip(self):
+        url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases/download/v' + self.version + '/' + self.zip_name
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--pid')
-    parser.add_argument('--version')
-    
-    args = parser.parse_args()
-    pid = args.pid
-    version = args.version
+        try:
+            r = requests.get(url)
+            if r.status_code == 200:
+                with open(self.zip_name, 'wb') as f:
+                    f.write(r.content)
+                self.zip_downloaded = True
+            else:
+                sys.stderr.write("Failed to fetch SpanchRouter update. Status code: " + str(r.status_code))
+                self.zip_downloaded = False
+        except NameError:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            sys.stderr.write(''.join('!! ' + line for line in lines))
+            self.zip_downloaded = False
 
-    zip_name = "EDMC_SpanshRouter_" + args.version.replace('.', '') + ".zip"
-    url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases/download/v' + args.version + '/' + zip_name
-    r = requests.get(url)
-    with open(zip_name, 'wb') as f:
-        f.write(r.content)
+    def install(self):
+        if self.zip_downloaded:
+            try:
+                with zipfile.ZipFile(self.zip_name, 'r') as zip_ref:
+                    zip_ref.extractall("./")
 
-    while is_running(int(pid)):
-        time.sleep(.25)
-    
-    with zipfile.ZipFile(zip_name, 'r') as zip_ref:
-        zip_ref.extractall("./")
-        
-    os.remove(zip_name)
-
-if __name__ == "__main__":
-    main()
+                os.remove(self.zip_name)
+            except NameError:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                sys.stderr.write(''.join('!! ' + line for line in lines))

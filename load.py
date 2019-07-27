@@ -9,16 +9,14 @@ import webbrowser
 import requests
 import traceback
 import subprocess
+from updater import SpanshUpdater
 from time import sleep
 from AutoCompleter import AutoCompleter
 from PlaceHolderEntry import PlaceHolderEntry
 
-if sys.platform.startswith('linux'):
-    import subprocess
-
 
 this = sys.modules[__name__]
-this.plugin_version = "2.0.1"
+this.plugin_version = "2.0.0"
 this.update_available = False
 this.next_stop = "No route planned"
 this.route = []
@@ -42,9 +40,8 @@ def plugin_start(plugin_dir):
         if response.status_code == 200:
             if this.plugin_version != response.content:
                 this.update_available = True
-                pid = os.getpid()
-                print("PID: " + str(pid))
-                subprocess.Popen(["./updater.py", "--pid=" + str(pid), "--version=" + response.content])
+                this.spansh_updater = SpanshUpdater(response.content)
+                this.spansh_updater.download_zip()
         else:
             sys.stderr.write("Could not query latest version from GitHub: " + str(response.status_code) + response.text)
     except NameError:
@@ -78,7 +75,6 @@ def plugin_start(plugin_dir):
     except:
         print("No previously saved route.")
 
-
 def plugin_stop():
     if this.route.__len__() != 0:
         # Save route for next time
@@ -95,6 +91,8 @@ def plugin_stop():
         except:
             print("No route to delete")
 
+    if this.update_available:
+        this.spansh_updater.install()
 
 def show_error(error):
     this.error_txt.set(error)
