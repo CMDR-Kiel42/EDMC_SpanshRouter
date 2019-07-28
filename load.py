@@ -40,7 +40,7 @@ def plugin_start(plugin_dir):
         if response.status_code == 200:
             if this.plugin_version != response.content:
                 this.update_available = True
-                this.spansh_updater = SpanshUpdater(response.content)
+                this.spansh_updater = SpanshUpdater(response.content, plugin_dir)
                 
                 if not this.spansh_updater.download_zip():
                     sys.stderr.write("Error when downloading the latest SpanshRouter update")
@@ -351,8 +351,10 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
     elif entry['event'] == 'FSSDiscoveryScan' and entry['SystemName'] == this.next_stop:
         update_route()
 
-def goto_update_page(self=None):
-    webbrowser.open('https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases')
+def goto_changelog_page(self=None):
+    changelog_url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/blob/master/CHANGELOG.md#'
+    changelog_url += this.spansh_updater.version.replace('.', '')
+    webbrowser.open(changelog_url)
 
 def plugin_app(parent):
     this.parent = parent
@@ -418,7 +420,11 @@ def plugin_app(parent):
         this.clear_route_btn.grid_remove()
 
     if this.update_available:
-        this.update_btn = tk.Button(this.frame, text="SpanshRouter update available for download!", command=goto_update_page)
+        update_txt = ("A SpanshRouter update is available.\n"
+            "It will be installed next time you start EDMC.\n"
+            "Click to dismiss this message, right click to see what's new.")
+        this.update_btn = tk.Button(this.frame, text=update_txt, command=lambda: this.update_btn.grid_forget())
+        this.update_btn.bind("<Button-3>", goto_changelog_page)
         this.update_btn.grid(row=row, pady=5, columnspan=2)
         row += 1
 
