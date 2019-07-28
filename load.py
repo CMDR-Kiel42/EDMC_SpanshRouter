@@ -16,7 +16,7 @@ from PlaceHolderEntry import PlaceHolderEntry
 
 
 this = sys.modules[__name__]
-this.plugin_version = "2.0.0"
+this.plugin_version = "2.1.0"
 this.update_available = False
 this.next_stop = "No route planned"
 this.route = []
