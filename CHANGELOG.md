@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.1.0
+
+- Automatically download and install updates
+- Right clicking on a System input now pastes what's in your clipboard
+
 ## 2.0.1
 
 - Add an error prompt when things go wrong while plotting a route

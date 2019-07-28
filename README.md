@@ -24,6 +24,10 @@ If you close EDMC, the plugin will save your progress. The next time you run EDM
 
 Fly dangerous! o7
 
+## Updates
+
+When a new update is available, it will automatically be downloaded. You'll just have to restart EDMC to install it.
+
 ## Known Issues
 
 At the moment, plotting a route while the game is running, and which begins from the system you're currently in, doesn't update your "next waypoint". If you're in that situation, a couple of solutions are available:

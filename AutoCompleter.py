@@ -27,9 +27,14 @@ class AutoCompleter(Entry, PlaceHolder):
 
         self.bind("<Any-Key>", self.keypressed)
         self.bind('<Control-KeyRelease-a>', self.select_all)
+        self.bind('<Button-3>', self.paste)
         self.lb.bind("<Double-Button-1>", self.selection)
         
         self.update_me()
+
+    def paste(self, event):
+        self.foc_in()
+        self.insert(0, self.clipboard_get())
 
     def keypressed(self, event):
         key=event.keysym

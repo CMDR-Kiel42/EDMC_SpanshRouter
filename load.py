@@ -8,16 +8,15 @@ import json
 import webbrowser
 import requests
 import traceback
+import subprocess
+from updater import SpanshUpdater
 from time import sleep
 from AutoCompleter import AutoCompleter
 from PlaceHolderEntry import PlaceHolderEntry
 
-if sys.platform.startswith('linux'):
-    import subprocess
-
 
 this = sys.modules[__name__]
-this.plugin_version = "2.0.1"
+this.plugin_version = "2.1.0"
 this.update_available = False
 this.next_stop = "No route planned"
 this.route = []
@@ -41,39 +40,42 @@ def plugin_start(plugin_dir):
         if response.status_code == 200:
             if this.plugin_version != response.content:
                 this.update_available = True
+                this.spansh_updater = SpanshUpdater(response.content, plugin_dir)
+                
+                if not this.spansh_updater.download_zip():
+                    sys.stderr.write("Error when downloading the latest SpanshRouter update")
         else:
-            sys.stderr.write("Could not query latest version from GitHub: " + str(response.status_code) + response.text)
+            sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
     except NameError:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         sys.stderr.write(''.join('!! ' + line for line in lines))
+    finally:
+        this.save_route_path = os.path.join(plugin_dir, 'route.csv')
+        this.offset_file_path = os.path.join(plugin_dir, 'offset')
 
-    this.save_route_path = os.path.join(plugin_dir, 'route.csv')
-    this.offset_file_path = os.path.join(plugin_dir, 'offset')
+        try:
+            # Open the last saved route
+            with open(this.save_route_path, 'r') as csvfile:
+                route_reader = csv.reader(csvfile)
 
-    try:
-        # Open the last saved route
-        with open(this.save_route_path, 'r') as csvfile:
-            route_reader = csv.reader(csvfile)
+                for row in route_reader:
+                    this.route.append(row)
 
-            for row in route_reader:
-                this.route.append(row)
+                try:
+                    with open(this.offset_file_path, 'r') as offset_fh:
+                        this.offset = int(offset_fh.readline())
 
-            try:
-                with open(this.offset_file_path, 'r') as offset_fh:
-                    this.offset = int(offset_fh.readline())
+                except:
+                    this.offset = 0
 
-            except:
-                this.offset = 0
+            for row in this.route[this.offset:]:
+                this.jumps_left += int(row[1])
 
-        for row in this.route[this.offset:]:
-            this.jumps_left += int(row[1])
-
-        this.next_stop = this.route[this.offset][0]
-        copy_waypoint()
-    except:
-        print("No previously saved route.")
-
+            this.next_stop = this.route[this.offset][0]
+            copy_waypoint()
+        except:
+            print("No previously saved route.")
 
 def plugin_stop():
     if this.route.__len__() != 0:
@@ -91,6 +93,8 @@ def plugin_stop():
         except:
             print("No route to delete")
 
+    if this.update_available:
+        this.spansh_updater.install()
 
 def show_error(error):
     this.error_txt.set(error)
@@ -172,13 +176,13 @@ def show_plot_gui(show=True):
         show_route_gui(True)
 
 def copy_waypoint(self=None):
-    if sys.platform == "win32":
+    if sys.platform == "linux" or sys.platform == "linux2":
+        command = subprocess.Popen(["echo", "-n", this.next_stop], stdout=subprocess.PIPE)
+        subprocess.Popen(["xclip", "-selection", "c"], stdin=command.stdout)
+    else:
         this.parent.clipboard_clear()
         this.parent.clipboard_append(this.next_stop)
         this.parent.update()
-    else:
-        command = subprocess.Popen(["echo", "-n", this.next_stop], stdout=subprocess.PIPE)
-        subprocess.Popen(["xclip", "-selection", "c"], stdin=command.stdout)
 
 def goto_next_waypoint(self=None):
     if this.offset < this.route.__len__()-1:
@@ -347,8 +351,10 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
     elif entry['event'] == 'FSSDiscoveryScan' and entry['SystemName'] == this.next_stop:
         update_route()
 
-def goto_update_page(self=None):
-    webbrowser.open('https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases')
+def goto_changelog_page(self=None):
+    changelog_url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/blob/master/CHANGELOG.md#'
+    changelog_url += this.spansh_updater.version.replace('.', '')
+    webbrowser.open(changelog_url)
 
 def plugin_app(parent):
     this.parent = parent
@@ -414,7 +420,11 @@ def plugin_app(parent):
         this.clear_route_btn.grid_remove()
 
     if this.update_available:
-        this.update_btn = tk.Button(this.frame, text="SpanshRouter update available for download!", command=goto_update_page)
+        update_txt = ("A SpanshRouter update is available.\n"
+            "It will be installed next time you start EDMC.\n"
+            "Click to dismiss this message, right click to see what's new.")
+        this.update_btn = tk.Button(this.frame, text=update_txt, command=lambda: this.update_btn.grid_forget())
+        this.update_btn.bind("<Button-3>", goto_changelog_page)
         this.update_btn.grid(row=row, pady=5, columnspan=2)
         row += 1
 
