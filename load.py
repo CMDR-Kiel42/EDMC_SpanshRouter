@@ -176,13 +176,13 @@ def show_plot_gui(show=True):
         show_route_gui(True)
 
 def copy_waypoint(self=None):
-    if sys.platform == "win32":
+    if sys.platform == "linux" or sys.platform == "linux2":
+        command = subprocess.Popen(["echo", "-n", this.next_stop], stdout=subprocess.PIPE)
+        subprocess.Popen(["xclip", "-selection", "c"], stdin=command.stdout)
+    else:
         this.parent.clipboard_clear()
         this.parent.clipboard_append(this.next_stop)
         this.parent.update()
-    else:
-        command = subprocess.Popen(["echo", "-n", this.next_stop], stdout=subprocess.PIPE)
-        subprocess.Popen(["xclip", "-selection", "c"], stdin=command.stdout)
 
 def goto_next_waypoint(self=None):
     if this.offset < this.route.__len__()-1:
