@@ -60,7 +60,8 @@ def plugin_start(plugin_dir):
                 route_reader = csv.reader(csvfile)
 
                 for row in route_reader:
-                    this.route.append(row)
+                    if row not in (None, "", []):
+                        this.route.append(row)
 
                 try:
                     with open(this.offset_file_path, 'r') as offset_fh:
@@ -204,8 +205,9 @@ def plot_csv(self=None):
 
             this.jumps_left = 0
             for row in route_reader:
-                this.route.append([row[0], row[4]])
-                this.jumps_left += int(row[4])
+                if row not in (None, "", []):
+                    this.route.append([row[0], row[4]])
+                    this.jumps_left += int(row[4])
 
         this.offset = 0
         this.next_stop = this.route[0][0]
