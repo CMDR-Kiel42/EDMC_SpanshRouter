@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.1.1
+
+- Fixed an issue with CSV files containing blank lines
+
 ## 2.1.0
 
 - Automatically download and install updates
