@@ -13,24 +13,12 @@ from time import sleep
 from SpanshRouter import updater as SpanshUpdater
 from SpanshRouter import AutoCompleter
 from SpanshRouter import PlaceHolderEntry
-
+from SpanshRouter import SpanshRouter
 
 this = sys.modules[__name__]
-this.plugin_version = "2.1.1"
-this.update_available = False
-this.next_stop = "No route planned"
-this.route = []
-this.next_wp_label = "Next waypoint: "
-this.jumpcountlbl_txt = "Estimated jumps left: "
-this.parent = None
-this.save_route_path = ""
-this.offset_file_path = ""
-this.offset = 0
-this.jumps_left = 0
-this.error_txt = tk.StringVar()
-this.plot_error = "Error while trying to plot a route, please try again."
+spansh_router = None
 
-
+# Done
 def plugin_start(plugin_dir):
     # Check for newer versions
     url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/version.json"
@@ -51,32 +39,9 @@ def plugin_start(plugin_dir):
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         sys.stderr.write(''.join('!! ' + line for line in lines))
     finally:
-        this.save_route_path = os.path.join(plugin_dir, 'route.csv')
-        this.offset_file_path = os.path.join(plugin_dir, 'offset')
-
-        try:
-            # Open the last saved route
-            with open(this.save_route_path, 'r') as csvfile:
-                route_reader = csv.reader(csvfile)
-
-                for row in route_reader:
-                    if row not in (None, "", []):
-                        this.route.append(row)
-
-                try:
-                    with open(this.offset_file_path, 'r') as offset_fh:
-                        this.offset = int(offset_fh.readline())
-
-                except:
-                    this.offset = 0
-
-            for row in this.route[this.offset:]:
-                this.jumps_left += int(row[1])
-
-            this.next_stop = this.route[this.offset][0]
-            copy_waypoint()
-        except:
-            print("No previously saved route.")
+        global spansh_router 
+        spansh_router = SpanshRouter(plugin_dir)
+        spansh_router.open_last_route()
 
 def plugin_stop():
     if this.route.__len__() != 0:
@@ -136,62 +101,8 @@ def show_route_gui(show):
 def update_gui():
     show_route_gui(True)
 
-def show_plot_gui(show=True):
-    if show:
-        this.waypoint_prev_btn.grid_remove()
-        this.waypoint_btn.grid_remove()
-        this.waypoint_next_btn.grid_remove()
-        this.jumpcounttxt_lbl.grid_remove()
-        this.clear_route_btn.grid_remove()
 
-        this.plot_gui_btn.grid_remove()
-        this.csv_route_btn.grid_remove()
-        this.source_ac.grid()
-        this.dest_ac.grid()
-        this.range_entry.grid()
-        this.efficiency_slider.grid()
-        this.plot_route_btn.grid()
-        this.cancel_plot.grid()
 
-        # Workaround because EDMC keeps switching the placeholder to bright white
-        if this.source_ac.get() == this.source_ac.placeholder:
-            this.source_ac.force_placeholder_color()
-        if this.dest_ac.get() == this.dest_ac.placeholder:
-            this.dest_ac.force_placeholder_color()
-        if this.range_entry.get() == this.range_entry.placeholder:
-            this.range_entry.force_placeholder_color()
-        show_route_gui(False)
-
-    else:
-        this.source_ac.put_placeholder()
-        this.dest_ac.put_placeholder()
-        this.source_ac.grid_remove()
-        this.dest_ac.grid_remove()
-        this.range_entry.grid_remove()
-        this.efficiency_slider.grid_remove()
-        this.plot_gui_btn.grid_remove()
-        this.plot_route_btn.grid_remove()
-        this.cancel_plot.grid_remove()
-        this.plot_gui_btn.grid()
-        this.csv_route_btn.grid()
-        show_route_gui(True)
-
-def copy_waypoint(self=None):
-    if sys.platform == "linux" or sys.platform == "linux2":
-        command = subprocess.Popen(["echo", "-n", this.next_stop], stdout=subprocess.PIPE)
-        subprocess.Popen(["xclip", "-selection", "c"], stdin=command.stdout)
-    else:
-        this.parent.clipboard_clear()
-        this.parent.clipboard_append(this.next_stop)
-        this.parent.update()
-
-def goto_next_waypoint(self=None):
-    if this.offset < this.route.__len__()-1:
-        update_route(1)
-
-def goto_prev_waypoint(self=None):
-    if this.offset > 0:
-        update_route(-1)
 
 def plot_csv(self=None):
     filename = filedialog.askopenfilename(filetypes = (("csv files", "*.csv"),))    # show an "Open" dialog box and return the path to the selected file
@@ -359,77 +270,4 @@ def goto_changelog_page(self=None):
     webbrowser.open(changelog_url)
 
 def plugin_app(parent):
-    this.parent = parent
-    parentwidth = parent.winfo_width()
-    this.frame = tk.Frame(parent, borderwidth=2)
-    this.frame.grid(sticky=tk.NSEW)
-
-    # Route info
-    this.waypoint_prev_btn = tk.Button(this.frame, text="^", command=goto_prev_waypoint)
-    this.waypoint_btn = tk.Button(this.frame, text=this.next_wp_label + this.next_stop, command=copy_waypoint)
-    this.waypoint_next_btn = tk.Button(this.frame, text="v", command=goto_next_waypoint)
-    this.jumpcounttxt_lbl = tk.Label(this.frame, text=this.jumpcountlbl_txt + str(this.jumps_left))
-    this.error_lbl = tk.Label(this.frame, textvariable=this.error_txt)
-
-    # Plotting GUI
-    this.source_ac = AutoCompleter(this.frame, "Source System", width=30)
-    this.dest_ac = AutoCompleter(this.frame, "Destination System", width=30)
-    this.range_entry = PlaceHolderEntry(this.frame, "Range (LY)", width=10)
-    this.efficiency_slider = tk.Scale(this.frame, from_=1, to=100, orient=tk.HORIZONTAL, label="Efficiency (%)")
-    this.efficiency_slider.set(60)
-    this.plot_gui_btn = tk.Button(this.frame, text="Plot route", command=show_plot_gui)
-    this.plot_route_btn = tk.Button(this.frame, text="Calculate", command=plot_route)
-    this.cancel_plot = tk.Button(this.frame, text="Cancel", command=lambda: show_plot_gui(False))
     
-    this.csv_route_btn = tk.Button(this.frame, text="Import CSV", command=plot_csv)
-    this.clear_route_btn = tk.Button(this.frame, text="Clear route", command=clear_route)
-
-    row = 0
-    this.waypoint_prev_btn.grid(row=row, columnspan=2)
-    row += 1
-    this.waypoint_btn.grid(row=row, columnspan=2)
-    row += 1
-    this.waypoint_next_btn.grid(row=row, columnspan=2)
-    row += 1
-    this.source_ac.grid(row=row,columnspan=2, pady=(10,0)) # The AutoCompleter takes two rows to show the list when needed, so we skip one
-    row += 2
-    this.dest_ac.grid(row=row,columnspan=2, pady=(10,0))
-    row += 2
-    this.range_entry.grid(row=row, pady=10, sticky=tk.W)
-    row += 1
-    this.efficiency_slider.grid(row=row, pady=10, columnspan=2, sticky=tk.EW)
-    row += 1
-    this.csv_route_btn.grid(row=row, pady=10, padx=0)
-    this.plot_route_btn.grid(row=row, pady=10, padx=0)
-    this.plot_gui_btn.grid(row=row, column=1, pady=10, padx=5, sticky=tk.W)
-    this.cancel_plot.grid(row=row, column=1, pady=10, padx=5, sticky=tk.E)
-    row += 1
-    this.clear_route_btn.grid(row=row,column=1)
-    row += 1
-    this.jumpcounttxt_lbl.grid(row=row, pady=5, sticky=tk.W)
-    row += 1
-    this.error_lbl.grid(row=row, columnspan=2)
-    this.error_lbl.grid_remove()
-    row += 1
-
-    show_plot_gui(False)
-
-    if not this.route.__len__() > 0:
-        this.waypoint_prev_btn.grid_remove()
-        this.waypoint_btn.grid_remove()
-        this.waypoint_next_btn.grid_remove()
-        this.jumpcounttxt_lbl.grid_remove()
-        this.clear_route_btn.grid_remove()
-
-    if this.update_available:
-        update_txt = ("A SpanshRouter update is available.\n"
-            "It will be installed next time you start EDMC.\n"
-            "Click to dismiss this message, right click to see what's new.")
-        this.update_btn = tk.Button(this.frame, text=update_txt, command=lambda: this.update_btn.grid_forget())
-        this.update_btn.bind("<Button-3>", goto_changelog_page)
-        this.update_btn.grid(row=row, pady=5, columnspan=2)
-        row += 1
-
-    update_gui()
-
-    return this.frame
