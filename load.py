@@ -9,10 +9,10 @@ import webbrowser
 import requests
 import traceback
 import subprocess
-from updater import SpanshUpdater
 from time import sleep
-from AutoCompleter import AutoCompleter
-from PlaceHolderEntry import PlaceHolderEntry
+from SpanshRouter import updater as SpanshUpdater
+from SpanshRouter import AutoCompleter
+from SpanshRouter import PlaceHolderEntry
 
 
 this = sys.modules[__name__]
