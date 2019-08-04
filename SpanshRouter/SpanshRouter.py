@@ -159,7 +159,7 @@ class SpanshRouter():
         self.source_ac["fg"] = self.source_ac.default_fg_color
 
     def show_route_gui(self, show):
-        hide_error()
+        self.hide_error()
         if not show or not self.route.__len__() > 0:
             self.waypoint_prev_btn.grid_remove()
             self.waypoint_btn.grid_remove()
@@ -280,7 +280,7 @@ class SpanshRouter():
         else:
             self.next_stop = self.route[self.offset][0]
             self.update_gui()
-            self.copy_waypoint(self.parent)
+            self.copy_waypoint()
 
     def goto_changelog_page(self):
         changelog_url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/blob/master/CHANGELOG.md#'
