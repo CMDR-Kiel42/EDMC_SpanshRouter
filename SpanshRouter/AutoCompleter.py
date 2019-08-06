@@ -118,7 +118,7 @@ class AutoCompleter(Entry, PlaceHolder):
             self.lb_up = False
 
     def query_systems(self):
-        inp = self.var.get()
+        inp = self.var.get().strip()
         if inp != self.placeholder and inp.__len__() >= 3:
             url = "https://spansh.co.uk/api/systems?"
             try:
