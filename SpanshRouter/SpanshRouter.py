@@ -368,7 +368,7 @@ class SpanshRouter():
                     sys.stderr.write("Failed to query route from Spansh: code " + str(results.status_code) + results.text)
                     self.enable_plot_gui(True)
                     self.show_error(self.plot_error)
-        except NameError:
+        except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             sys.stderr.write(''.join('!! ' + line for line in lines))
@@ -423,7 +423,7 @@ class SpanshRouter():
                         sys.stderr.write("Error when downloading the latest SpanshRouter update")
             else:
                 sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
-        except NameError:
+        except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             sys.stderr.write(''.join('!! ' + line for line in lines))

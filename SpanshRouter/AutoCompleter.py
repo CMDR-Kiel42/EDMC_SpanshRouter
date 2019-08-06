@@ -130,7 +130,7 @@ class AutoCompleter(Entry, PlaceHolder):
                 lista = json.loads(results.content)
                 if lista:
                     self.write(lista)
-            except NameError:
+            except:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
                 sys.stderr.write(''.join('!! ' + line for line in lines))

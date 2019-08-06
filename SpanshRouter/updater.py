@@ -27,7 +27,7 @@ class SpanshUpdater():
             else:
                 sys.stderr.write("Failed to fetch SpanchRouter update. Status code: " + str(r.status_code))
                 self.zip_downloaded = False
-        except NameError:
+        except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             sys.stderr.write(''.join('!! ' + line for line in lines))
@@ -45,7 +45,7 @@ class SpanshUpdater():
                     zip_ref.extractall(self.plugin_dir)
 
                 os.remove(self.zip_path)
-            except NameError:
+            except:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
                 sys.stderr.write(''.join('!! ' + line for line in lines))
