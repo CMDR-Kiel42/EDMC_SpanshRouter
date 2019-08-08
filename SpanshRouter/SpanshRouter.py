@@ -225,6 +225,9 @@ class SpanshRouter():
             self.cancel_plot.config(state=tk.DISABLED)
             self.cancel_plot.update_idletasks()
 
+    #   -- END GUI part -- 
+
+
     def open_last_route(self):
         try:
             with open(self.save_route_path, 'r') as csvfile:
@@ -412,7 +415,23 @@ class SpanshRouter():
             except:
                 print("No route to delete")
 
+    def cleanup_old_version(self):
+        try:
+            if (os.path.exists(os.path.join(self.plugin_dir, "AutoCompleter.py"))
+            and os.path.exists(os.path.join(self.plugin_dir, "SpanshRouter"))):
+                files_list = os.listdir(self.plugin_dir)
+
+                for filename in files_list:
+                    if (filename != "load.py" 
+                    and (filename.endswith(".py") or filename.endswith(".pyc") or filename.endswith(".pyo"))):
+                        os.remove(os.path.join(self.plugin_dir, filename))
+        except:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                sys.stderr.write(''.join('!! ' + line for line in lines))
+
     def check_for_update(self):
+        self.cleanup_old_version()
         url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/version.json"
         try:
             response = requests.get(url, timeout=2)
@@ -432,4 +451,4 @@ class SpanshRouter():
             sys.stderr.write(''.join('!! ' + line for line in lines))
 
     def install_update(self):
-        self.install()
+        self.spansh_updater.install()

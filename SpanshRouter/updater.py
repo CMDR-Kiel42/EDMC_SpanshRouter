@@ -38,9 +38,6 @@ class SpanshUpdater():
     def install(self):
         if self.zip_downloaded:
             try:
-                # Cleaning up older versions
-                if os.path.exists(os.path.join(self.plugin_dir, "AutoCompleter.py")):
-                    os.remove(os.path.join(self.plugin_dir, "*.py"))
                 with zipfile.ZipFile(self.zip_path, 'r') as zip_ref:
                     zip_ref.extractall(self.plugin_dir)
 
