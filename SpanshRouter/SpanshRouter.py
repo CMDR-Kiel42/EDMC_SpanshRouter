@@ -359,15 +359,18 @@ class SpanshRouter():
                         else:
                             sys.stderr.write("Failed to query plotted route from Spansh: code " + str(route_response.status_code) + route_response.text)
                             self.enable_plot_gui(True)
-                            self.show_error(self.plot_error)
+                            failure = json.loads(results.content)
+                            self.show_error(failure["error"]) if "error" in failure else self.show_error(self.plot_error)
                     else:
                         sys.stderr.write("Query to Spansh timed out")
                         self.enable_plot_gui(True)
-                        self.show_error(self.plot_error)
+                        self.show_error("The query to Spansh was too long and timed out, please try again.")
                 else:
                     sys.stderr.write("Failed to query route from Spansh: code " + str(results.status_code) + results.text)
                     self.enable_plot_gui(True)
-                    self.show_error(self.plot_error)
+                    failure = json.loads(results.content)
+                    self.show_error(failure["error"]) if "error" in failure else self.show_error(self.plot_error)
+                    
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
