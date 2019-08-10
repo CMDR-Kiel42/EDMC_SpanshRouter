@@ -314,8 +314,8 @@ class SpanshRouter():
     def plot_route(self):
         self.hide_error()
         try:
-            source = self.source_ac.get()
-            dest = self.dest_ac.get()
+            source = self.source_ac.get().strip()
+            dest = self.dest_ac.get().strip()
             efficiency = self.efficiency_slider.get()
 
             if (    source  and source != self.source_ac.placeholder and
