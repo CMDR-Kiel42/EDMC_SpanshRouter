@@ -91,6 +91,9 @@ class SpanshRouter():
         self.error_lbl.grid_remove()
         row += 1
 
+        # Check if we're having a valid range on the fly
+        self.range_entry.var.trace('w', self.check_range)
+
         self.show_plot_gui(False)
 
         if not self.route.__len__() > 0:
@@ -419,6 +422,17 @@ class SpanshRouter():
                 os.remove(self.offset_file_path)
             except:
                 print("No route to delete")
+
+    def check_range(self, name, index, mode):
+        value = self.range_entry.var.get()
+        if value.__len__() > 0 and value != self.range_entry.placeholder:
+            try:
+                float(value)
+                self.range_entry['fg'] = self.range_entry.default_fg_color
+                self.hide_error()
+            except ValueError:
+                self.show_error("Invalid range")
+                self.range_entry['fg'] = "red"
 
     def cleanup_old_version(self):
         try:
