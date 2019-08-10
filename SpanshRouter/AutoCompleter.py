@@ -30,14 +30,17 @@ class AutoCompleter(Entry, PlaceHolder):
         self.bind('<Control-KeyRelease-a>', self.select_all)
         self.bind('<Button-3>', self.paste)
         self.lb.bind("<Double-Button-1>", self.selection)
-        self.lb.bind("<<ListboxSelect>>", self.testing)
         self.bind("<FocusOut>", self.ac_foc_out)
+        self.lb.bind("<FocusOut>", self.ac_foc_out)
 
         self.update_me()
 
     def ac_foc_out(self, event):
-        self.foc_out()
-        self.hide_list()
+        x,y = self.parent.winfo_pointerxy()
+        widget_under_cursor = self.parent.winfo_containing(x,y)
+        if widget_under_cursor != self.lb and widget_under_cursor != self:
+            self.foc_out()
+            self.hide_list()
 
     def paste(self, event):
         self.foc_in()
