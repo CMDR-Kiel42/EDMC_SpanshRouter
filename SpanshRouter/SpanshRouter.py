@@ -368,19 +368,35 @@ class SpanshRouter():
                             self.copy_waypoint()
                             self.update_gui()
                         else:
-                            sys.stderr.write("Failed to query plotted route from Spansh: code " + str(route_response.status_code) + route_response.text)
+                            sys.stderr.write("Failed to query plotted route from Spansh: code " + str(route_response.status_code) + route_response.text + '\n')
                             self.enable_plot_gui(True)
                             failure = json.loads(results.content)
-                            self.show_error(failure["error"]) if "error" in failure else self.show_error(self.plot_error)
+
+                            if route_response.status_code == 400 and "error" in failure:
+                                self.show_error(failure["error"])  
+                                if "starting system" in failure["error"]:
+                                    self.source_ac["fg"] = "red"
+                                if "finishing system" in failure["error"]:
+                                    self.dest_ac["fg"] = "red"
+                            else:
+                                self.show_error(self.plot_error)
                     else:
                         sys.stderr.write("Query to Spansh timed out")
                         self.enable_plot_gui(True)
                         self.show_error("The query to Spansh was too long and timed out, please try again.")
                 else:
-                    sys.stderr.write("Failed to query route from Spansh: code " + str(results.status_code) + results.text)
+                    sys.stderr.write("Failed to query plotted route from Spansh: code " + str(results.status_code) + results.text + '\n')
                     self.enable_plot_gui(True)
                     failure = json.loads(results.content)
-                    self.show_error(failure["error"]) if "error" in failure else self.show_error(self.plot_error)
+
+                    if results.status_code == 400 and "error" in failure:
+                        self.show_error(failure["error"])  
+                        if "starting system" in failure["error"]:
+                            self.source_ac["fg"] = "red"
+                        if "finishing system" in failure["error"]:
+                            self.dest_ac["fg"] = "red"
+                    else:
+                        self.show_error(self.plot_error)
                     
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
