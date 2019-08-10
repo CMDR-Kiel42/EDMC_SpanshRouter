@@ -321,7 +321,12 @@ class SpanshRouter():
             if (    source  and source != self.source_ac.placeholder and
                     dest    and dest != self.dest_ac.placeholder    ):
 
-                range_ly = float(self.range_entry.get())
+                try:
+                    range_ly = float(self.range_entry.get())
+                except ValueError:
+                    self.show_error("Invalid range")
+                    return
+
                 job_url="https://spansh.co.uk/api/route?"
 
                 results = requests.post(job_url, params={
