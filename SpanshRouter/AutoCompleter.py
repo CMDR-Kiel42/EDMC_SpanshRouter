@@ -18,7 +18,7 @@ class AutoCompleter(Entry, PlaceHolder):
 
         self.parent = parent
 
-        self.lb = Listbox(self.parent, **kw)
+        self.lb = Listbox(self.parent, selectmode=SINGLE, **kw)
         self.lb_up = False
         self.has_selected = False
         self.queue = Queue.Queue()
@@ -26,11 +26,18 @@ class AutoCompleter(Entry, PlaceHolder):
         PlaceHolder.__init__(self, placeholder)
 
         self.bind("<Any-Key>", self.keypressed)
+        self.lb.bind("<Any-Key>", self.keypressed)
         self.bind('<Control-KeyRelease-a>', self.select_all)
         self.bind('<Button-3>', self.paste)
         self.lb.bind("<Double-Button-1>", self.selection)
-        
+        self.lb.bind("<<ListboxSelect>>", self.testing)
+        self.bind("<FocusOut>", self.ac_foc_out)
+
         self.update_me()
+
+    def ac_foc_out(self, event):
+        self.foc_out()
+        self.hide_list()
 
     def paste(self, event):
         self.foc_in()
@@ -39,9 +46,9 @@ class AutoCompleter(Entry, PlaceHolder):
     def keypressed(self, event):
         key=event.keysym
         if key == 'Down':
-            self.down()
+            self.down(event.widget.widgetName)
         elif key == 'Up':
-            self.up()
+            self.up(event.widget.widgetName)
         elif key in ['Return', 'Right']:
             if self.lb_up:
                 self.selection()
@@ -66,7 +73,7 @@ class AutoCompleter(Entry, PlaceHolder):
             self.hide_list()
             self.icursor(END)
 
-    def up(self):
+    def up(self, widget):
         if self.lb_up:
             if self.lb.curselection() == ():
                 index = '0'
@@ -76,9 +83,10 @@ class AutoCompleter(Entry, PlaceHolder):
                 self.lb.selection_clear(first=index)
                 index = str(int(index)-1)                
                 self.lb.selection_set(first=index)
-                self.lb.activate(index) 
+                if widget != "listbox":
+                    self.lb.activate(index) 
 
-    def down(self):
+    def down(self, widget):
         if self.lb_up:
             if self.lb.curselection() == ():
                 index = '0'
@@ -89,7 +97,8 @@ class AutoCompleter(Entry, PlaceHolder):
                     index = str(int(index+1))
     
             self.lb.selection_set(first=index)
-            self.lb.activate(index)
+            if widget != "listbox":
+                self.lb.activate(index)
         else:
             self.query_systems()
 
