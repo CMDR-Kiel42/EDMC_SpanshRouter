@@ -12,6 +12,7 @@ import Tkinter as tk
 import tkFileDialog as filedialog
 import tkMessageBox as confirmDialog
 from time import sleep
+from monitor import monitor
 from . import AutoCompleter
 from . import PlaceHolderEntry
 from .updater import SpanshUpdater
@@ -41,7 +42,7 @@ class SpanshRouter():
         self.parent = parent
         parentwidth = parent.winfo_width()
         self.frame = tk.Frame(parent, borderwidth=2)
-        self.frame.grid(sticky=tk.NSEW)
+        self.frame.grid(sticky=tk.NSEW, columnspan=2)
 
         # Route info
         self.waypoint_prev_btn = tk.Button(self.frame, text="^", command=self.goto_prev_waypoint)
@@ -363,8 +364,8 @@ class SpanshRouter():
                                 self.jumps_left += waypoint["jumps"]
                             self.enable_plot_gui(True)
                             self.show_plot_gui(False)
-                            self.offset = 0
-                            self.next_stop = self.route[0][0]
+                            self.offset = 1 if self.route[0][0] == monitor.system else 0
+                            self.next_stop = self.route[self.offset][0] 
                             self.copy_waypoint()
                             self.update_gui()
                         else:
