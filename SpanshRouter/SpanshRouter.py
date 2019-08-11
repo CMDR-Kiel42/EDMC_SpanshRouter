@@ -144,8 +144,10 @@ class SpanshRouter():
             self.show_route_gui(False)
 
         else:
-            self.source_ac.put_placeholder()
-            self.dest_ac.put_placeholder()
+            if len(self.source_ac.var.get()) == 0:
+                self.source_ac.put_placeholder()
+            if len(self.dest_ac.var.get()) == 0:
+                self.dest_ac.put_placeholder()
             self.source_ac.grid_remove()
             self.dest_ac.grid_remove()
             self.range_entry.grid_remove()
