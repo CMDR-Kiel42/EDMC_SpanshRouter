@@ -18,7 +18,7 @@ class AutoCompleter(Entry, PlaceHolder):
 
         self.parent = parent
 
-        self.lb = Listbox(self.parent, **kw)
+        self.lb = Listbox(self.parent, selectmode=SINGLE, **kw)
         self.lb_up = False
         self.has_selected = False
         self.queue = Queue.Queue()
@@ -26,11 +26,21 @@ class AutoCompleter(Entry, PlaceHolder):
         PlaceHolder.__init__(self, placeholder)
 
         self.bind("<Any-Key>", self.keypressed)
+        self.lb.bind("<Any-Key>", self.keypressed)
         self.bind('<Control-KeyRelease-a>', self.select_all)
         self.bind('<Button-3>', self.paste)
         self.lb.bind("<Double-Button-1>", self.selection)
-        
+        self.bind("<FocusOut>", self.ac_foc_out)
+        self.lb.bind("<FocusOut>", self.ac_foc_out)
+
         self.update_me()
+
+    def ac_foc_out(self, event):
+        x,y = self.parent.winfo_pointerxy()
+        widget_under_cursor = self.parent.winfo_containing(x,y)
+        if widget_under_cursor != self.lb and widget_under_cursor != self:
+            self.foc_out()
+            self.hide_list()
 
     def paste(self, event):
         self.foc_in()
@@ -39,9 +49,9 @@ class AutoCompleter(Entry, PlaceHolder):
     def keypressed(self, event):
         key=event.keysym
         if key == 'Down':
-            self.down()
+            self.down(event.widget.widgetName)
         elif key == 'Up':
-            self.up()
+            self.up(event.widget.widgetName)
         elif key in ['Return', 'Right']:
             if self.lb_up:
                 self.selection()
@@ -66,7 +76,7 @@ class AutoCompleter(Entry, PlaceHolder):
             self.hide_list()
             self.icursor(END)
 
-    def up(self):
+    def up(self, widget):
         if self.lb_up:
             if self.lb.curselection() == ():
                 index = '0'
@@ -76,9 +86,10 @@ class AutoCompleter(Entry, PlaceHolder):
                 self.lb.selection_clear(first=index)
                 index = str(int(index)-1)                
                 self.lb.selection_set(first=index)
-                self.lb.activate(index) 
+                if widget != "listbox":
+                    self.lb.activate(index) 
 
-    def down(self):
+    def down(self, widget):
         if self.lb_up:
             if self.lb.curselection() == ():
                 index = '0'
@@ -89,7 +100,8 @@ class AutoCompleter(Entry, PlaceHolder):
                     index = str(int(index+1))
     
             self.lb.selection_set(first=index)
-            self.lb.activate(index)
+            if widget != "listbox":
+                self.lb.activate(index)
         else:
             self.query_systems()
 
@@ -118,7 +130,7 @@ class AutoCompleter(Entry, PlaceHolder):
             self.lb_up = False
 
     def query_systems(self):
-        inp = self.var.get()
+        inp = self.var.get().strip()
         if inp != self.placeholder and inp.__len__() >= 3:
             url = "https://spansh.co.uk/api/systems?"
             try:
@@ -130,7 +142,7 @@ class AutoCompleter(Entry, PlaceHolder):
                 lista = json.loads(results.content)
                 if lista:
                     self.write(lista)
-            except NameError:
+            except:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
                 sys.stderr.write(''.join('!! ' + line for line in lines))

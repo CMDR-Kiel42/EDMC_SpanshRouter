@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.1.2
+
+- Fixed conflicts when other plugins used similar file names
+- Fixed plugin sometimes just breaking when nasty errors occured and actually recover from them
+- Remove trailing whitespaces when plotting a route to avoid issues with Spansh
+- Show plotting errors in the GUI (like unknown system name or invalid range)
+- Fixed an issue with the systems list where it wouldn't disappear
+- Fixed an issue when plotting from the system you're currently in (it should now *finally* start at the next waypoint)
+- Keep previous entries in the *Route plotting* GUI when closing it
+
 ## 2.1.1
 
 - Fixed an issue with CSV files containing blank lines

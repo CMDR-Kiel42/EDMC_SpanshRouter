@@ -22,9 +22,10 @@ class PlaceHolder():
         self['fg'] = self.placeholder_color
 
     def foc_in(self, *args):
-        if self['fg'] == self.placeholder_color or self.get() == self.placeholder:
-            self.delete('0', 'end')
+        if self['fg'] == "red" or self['fg'] == self.placeholder_color:
             self['fg'] = self.default_fg_color
+            if self.get() == self.placeholder:
+                self.delete('0', 'end')
 
     def foc_out(self, *args):
         if not self.get():
