@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.1.3
+
+- Bugfix: System suggestions actually show up when you type in either Source or Destination system inputs on Windows
+
 ## 2.1.2
 
 - Fixed conflicts when other plugins used similar file names
