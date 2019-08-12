@@ -121,7 +121,7 @@ class AutoCompleter(Entry, PlaceHolder):
         if not self.lb_up:
             info = self.grid_info()
             if info:
-                self.lb.grid(row=info["row"]+1, columnspan=2)
+                self.lb.grid(row=int(info["row"])+1, columnspan=2)
                 self.lb_up = True
 
     def hide_list(self):
