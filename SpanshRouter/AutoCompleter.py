@@ -25,10 +25,16 @@ class AutoCompleter(Entry, PlaceHolder):
 
         PlaceHolder.__init__(self, placeholder)
 
+        # Create right click menu
+        self.menu = Menu(self.parent, tearoff=0)
+        self.menu.add_command(label="Cut")
+        self.menu.add_command(label="Copy")
+        self.menu.add_command(label="Paste")
+
         self.bind("<Any-Key>", self.keypressed)
         self.lb.bind("<Any-Key>", self.keypressed)
         self.bind('<Control-KeyRelease-a>', self.select_all)
-        self.bind('<Button-3>', self.paste)
+        self.bind('<Button-3>', self.show_menu)
         self.lb.bind("<Double-Button-1>", self.selection)
         self.bind("<FocusOut>", self.ac_foc_out)
         self.lb.bind("<FocusOut>", self.ac_foc_out)
@@ -41,10 +47,17 @@ class AutoCompleter(Entry, PlaceHolder):
         if widget_under_cursor != self.lb and widget_under_cursor != self:
             self.foc_out()
             self.hide_list()
-
-    def paste(self, event):
+    
+    def show_menu(self, e):
         self.foc_in()
-        self.insert(0, self.clipboard_get())
+        w = e.widget
+        self.menu.entryconfigure("Cut",
+        command=lambda: w.event_generate("<<Cut>>"))
+        self.menu.entryconfigure("Copy",
+        command=lambda: w.event_generate("<<Copy>>"))
+        self.menu.entryconfigure("Paste",
+        command=lambda: w.event_generate("<<Paste>>"))
+        self.menu.tk.call("tk_popup", self.menu, e.x_root, e.y_root)
 
     def keypressed(self, event):
         key=event.keysym
