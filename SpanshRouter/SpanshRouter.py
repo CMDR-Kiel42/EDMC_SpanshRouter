@@ -290,6 +290,7 @@ class SpanshRouter():
             self.next_stop = self.route[self.offset][0]
             self.update_gui()
             self.copy_waypoint()
+        self.save_offset()
 
     def goto_changelog_page(self):
         changelog_url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/blob/master/CHANGELOG.md#'
@@ -316,6 +317,7 @@ class SpanshRouter():
             self.next_stop = self.route[0][0]
             self.copy_waypoint()
             self.update_gui()
+            self.save_all_route()
 
     def plot_route(self):
         self.hide_error()
@@ -370,6 +372,7 @@ class SpanshRouter():
                             self.next_stop = self.route[self.offset][0] 
                             self.copy_waypoint()
                             self.update_gui()
+                            self.save_all_route()
                         else:
                             sys.stderr.write("Failed to query plotted route from Spansh: code " + str(route_response.status_code) + route_response.text + '\n')
                             self.enable_plot_gui(True)
@@ -427,20 +430,30 @@ class SpanshRouter():
 
             self.update_gui()
 
+    def save_all_route(self):
+        self.save_route()
+        self.save_offset()
+
     def save_route(self):
         if self.route.__len__() != 0:
             with open(self.save_route_path, 'w') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerows(self.route)
-
+        else:
+            try:
+                os.remove(self.save_route_path)
+            except:
+                print("No route to delete")
+    
+    def save_offset(self):
+        if self.route.__len__() != 0:
             with open(self.offset_file_path, 'w') as offset_fh:
                 offset_fh.write(str(self.offset))
         else:
             try:
-                os.remove(self.save_route_path)
                 os.remove(self.offset_file_path)
             except:
-                print("No route to delete")
+                print("No offset to delete")
 
     def check_range(self, name, index, mode):
         value = self.range_entry.var.get()
