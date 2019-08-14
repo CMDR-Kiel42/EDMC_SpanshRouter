@@ -75,6 +75,7 @@ class AutoCompleter(Entry, PlaceHolder):
         event.widget.event_generate('<<SelectAll>>')
 
     def changed(self, name, index, mode):
+        self.set_default_style()
         if self.var.get().__len__() < 3 and self.lb_up or self.has_selected:
             self.hide_list()
             self.has_selected = False

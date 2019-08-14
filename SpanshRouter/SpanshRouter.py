@@ -162,7 +162,7 @@ class SpanshRouter():
     def set_source_ac(self, text):
         self.source_ac.delete(0, tk.END)
         self.source_ac.insert(0, text)
-        self.source_ac["fg"] = self.source_ac.default_fg_color
+        self.source_ac.set_default_style()
 
     def show_route_gui(self, show):
         self.hide_error()
@@ -460,11 +460,11 @@ class SpanshRouter():
         if value.__len__() > 0 and value != self.range_entry.placeholder:
             try:
                 float(value)
-                self.range_entry['fg'] = self.range_entry.default_fg_color
+                self.range_entry.set_error_style(False)
                 self.hide_error()
             except ValueError:
                 self.show_error("Invalid range")
-                self.range_entry['fg'] = "red"
+                self.range_entry.set_error_style()
 
     def cleanup_old_version(self):
         try:

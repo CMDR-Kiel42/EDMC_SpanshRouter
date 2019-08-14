@@ -5,7 +5,6 @@ class PlaceHolder():
     def __init__(self, placeholder, **kw):
         self.placeholder = placeholder
         self.placeholder_color = "grey"
-        self.default_fg_color = config.get('dark_text')
 
         self.bind("<FocusIn>", self.foc_in)
         self.bind("<FocusOut>", self.foc_out)
@@ -21,9 +20,19 @@ class PlaceHolder():
     def force_placeholder_color(self):
         self['fg'] = self.placeholder_color
 
+    def set_default_style(self):
+        theme = config.getint('theme')
+        self['fg'] = config.get('dark_text') if theme else "black"
+
+    def set_error_style(self, error=True):
+        if error:
+            self['fg'] = "red"
+        else:
+            self.set_default_style()
+
     def foc_in(self, *args):
         if self['fg'] == "red" or self['fg'] == self.placeholder_color:
-            self['fg'] = self.default_fg_color
+            self.set_default_style()
             if self.get() == self.placeholder:
                 self.delete('0', 'end')
 
