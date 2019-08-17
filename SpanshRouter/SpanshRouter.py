@@ -61,7 +61,7 @@ class SpanshRouter():
         self.plot_route_btn = tk.Button(self.frame, text="Calculate", command=self.plot_route)
         self.cancel_plot = tk.Button(self.frame, text="Cancel", command=lambda: self.show_plot_gui(False))
         
-        self.csv_route_btn = tk.Button(self.frame, text="Import CSV", command=self.plot_csv)
+        self.csv_route_btn = tk.Button(self.frame, text="Import file", command=self.plot_file)
         self.clear_route_btn = tk.Button(self.frame, text="Clear route", command=self.clear_route)
 
         row = 0
@@ -174,8 +174,11 @@ class SpanshRouter():
             self.clear_route_btn.grid_remove()
         else:
             self.waypoint_btn["text"] = self.next_wp_label + self.next_stop
-            self.jumpcounttxt_lbl["text"] = self.jumpcountlbl_txt + str(self.jumps_left)
-            self.jumpcounttxt_lbl.grid()
+            if self.jumps_left > 0:
+                self.jumpcounttxt_lbl["text"] = self.jumpcountlbl_txt + str(self.jumps_left)
+                self.jumpcounttxt_lbl.grid()
+            else:
+                self.jumpcounttxt_lbl.grid_remove()
 
             self.waypoint_prev_btn.grid()
             self.waypoint_btn.grid()
@@ -297,27 +300,53 @@ class SpanshRouter():
         changelog_url += self.spansh_updater.version.replace('.', '')
         webbrowser.open(changelog_url)
     
-    def plot_csv(self):
-        filename = filedialog.askopenfilename(filetypes = (("csv files", "*.csv"),))    # show an "Open" dialog box and return the path to the selected file
+    def plot_file(self):
+        ftypes = [
+            ('All supported files', '*.csv *.txt'),
+            ('CSV files', '*.csv'),
+            ('Text files', '*.txt'),
+        ]
+        filename = filedialog.askopenfilename(filetypes = ftypes)
 
         if filename.__len__() > 0:
-            with open(filename, 'r') as csvfile:
-                route_reader = csv.reader(csvfile)
+            try:
+                ftype_supported = False
+                if filename.endswith(".csv"):
+                    ftype_supported = True
+                    with open(filename, 'r') as csvfile:
+                        route_reader = csv.reader(csvfile)
 
-                # Skip the header
-                route_reader.next()
+                        # Skip the header
+                        route_reader.next()
 
-                self.jumps_left = 0
-                for row in route_reader:
-                    if row not in (None, "", []):
-                        self.route.append([row[0], row[4]])
-                        self.jumps_left += int(row[4])
+                        self.clear_route(False)
+                        for row in route_reader:
+                            if row not in (None, "", []):
+                                self.route.append([row[0], row[4]])
+                                self.jumps_left += int(row[4])
+                elif filename.endswith(".txt"):
+                    ftype_supported = True
+                    with open(filename, 'r') as txtfile:
+                        route_txt = txtfile.readlines()
+                        self.clear_route(False)
+                        for row in route_txt:
+                            if row not in (None, "", []):
+                                self.route.append([row.rstrip(), 0])
 
-            self.offset = 0
-            self.next_stop = self.route[0][0]
-            self.copy_waypoint()
-            self.update_gui()
-            self.save_all_route()
+                if ftype_supported:
+                    self.offset = 0
+                    self.next_stop = self.route[0][0]
+                    self.copy_waypoint()
+                    self.update_gui()
+                    self.save_all_route()
+                else:
+                    self.show_error("Unsupported file type")
+            except:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                sys.stderr.write(''.join('!! ' + line for line in lines))
+                self.enable_plot_gui(True)
+                self.show_error("An error occured while reading the file.")
 
     def plot_route(self):
         self.hide_error()
