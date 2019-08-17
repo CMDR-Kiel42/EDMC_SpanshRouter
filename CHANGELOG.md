@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.1.4
+
+- Autosaves your progress more often in case EDMC crashes
+- Add a right click menu for copy/pasting in the system entries
+- Better themes integration
+
 ## 2.1.3
 
 - Bugfix: System suggestions actually show up when you type in either Source or Destination system inputs on Windows

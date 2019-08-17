@@ -5,10 +5,10 @@ This plugin's purpose is to automatically copy to your clipboard the next waypoi
 ## Install
 
 - If you're on Linux, you'll need to make sure that **xclip** is installed before using the plugin (`sudo apt-get xclip` on Debian based systems).
-- Download the latest release [here](https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases/latest) and unzip it.
 - Open your EDMC plugins folder - in EDMC settings, select "Plugins" tab, click the "Open" button.
-- Create a folder inside the plugins folder called **SpanshRouter**
-- Open the **SpanshRouter** folder you created and put all the files you extracted inside.
+- Create a folder inside the plugins folder and call it whatever you want, **SpanshRouter** for instance
+- Download the latest release [here](https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases/latest) and unzip it.
+- Open the folder you created and put all the files and folders you extracted inside
 - Restart EDMC
 
 ## How to use
