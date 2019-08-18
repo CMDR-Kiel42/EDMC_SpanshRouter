@@ -8,6 +8,7 @@ import subprocess
 import webbrowser
 import json
 import requests
+import re
 import Tkinter as tk
 import tkFileDialog as filedialog
 import tkMessageBox as confirmDialog
@@ -149,7 +150,8 @@ class SpanshRouter():
             self.plot_gui_btn.grid_remove()
             self.file_route_button.grid_remove()
             self.source_ac.grid()
-            self.source_ac.set_text(monitor.system)
+            if monitor.system:
+                self.source_ac.set_text(monitor.system)
             self.dest_ac.grid()
             self.range_entry.grid()
             self.efficiency_slider.grid()
@@ -256,14 +258,20 @@ class SpanshRouter():
             self.cancel_plot.config(state=tk.DISABLED)
             self.cancel_plot.update_idletasks()
     
-    def show_ftype_selection(self):
-        self.file_route_button.grid_remove()
-        self.file_plot_button.grid()
-        theme = config.getint('theme')
-        for text, value in self.FILETYPES:
-            #SUNKEN, RAISED, GROOVE, RIDGE, or FLAT
-            self.selected_ftype_rbuttons[value]['selectcolor'] = "black" if theme else "white"
-            self.selected_ftype_rbuttons[value].grid()
+    def show_ftype_selection(self, show=True):
+        if show:
+            self.file_route_button.grid_remove()
+            self.file_plot_button.grid()
+            theme = config.getint('theme')
+            for text, value in self.FILETYPES:
+                self.selected_ftype_rbuttons[value]['selectcolor'] = "black" if theme else "white"
+                self.selected_ftype_rbuttons[value].grid()
+        else:
+            self.file_plot_button.grid_remove()
+            self.file_route_button.grid()
+            for text, value in self.FILETYPES:
+                self.selected_ftype_rbuttons[value].grid_remove()
+
 
     #   -- END GUI part -- 
 
@@ -332,17 +340,20 @@ class SpanshRouter():
         webbrowser.open(changelog_url)
 
     def plot_file(self):
-        ftypes = [
-            ('All supported files', '*.csv *.txt'),
-            ('CSV files', '*.csv'),
-            ('Text files', '*.txt'),
-        ]
-        filename = filedialog.askopenfilename(filetypes = ftypes)
+        self.show_ftype_selection(False)
+        ftypes = {
+            'spansh': (('CSV files', '*.csv'),),
+            'text': (('Text files', '*.txt'),),
+            'text_stations': (('Text files', '*.txt'),),
+            'edts': (('Text files', '*.txt'),),
+        }
+        
+        filename = filedialog.askopenfilename(filetypes = ftypes[self.selected_ftype.get()])
 
         if filename.__len__() > 0:
             try:
                 ftype_supported = False
-                if filename.endswith(".csv"):
+                if filename.endswith(".csv") and self.selected_ftype.get() == 'spansh':
                     ftype_supported = True
                     with open(filename, 'r') as csvfile:
                         route_reader = csv.reader(csvfile)
@@ -356,13 +367,20 @@ class SpanshRouter():
                                 self.route.append([row[0].rstrip(), row[4]])
                                 self.jumps_left += int(row[4])
                 elif filename.endswith(".txt"):
-                    ftype_supported = True
-                    with open(filename, 'r') as txtfile:
-                        route_txt = txtfile.readlines()
-                        self.clear_route(False)
-                        for row in route_txt:
-                            if row not in (None, "", []):
-                                self.route.append([row.rstrip(), 0])
+                    if self.selected_ftype.get() == 'text':
+                        ftype_supported = True
+                        with open(filename, 'r') as txtfile:
+                            route_txt = txtfile.readlines()
+                            self.clear_route(False)
+                            for row in route_txt:
+                                if row not in (None, "", []):
+                                    self.route.append([row.rstrip(), 0])
+                    elif self.selected_ftype.get() == 'text_stations':
+                        ftype_supported = False
+                        self.show_error("Coming soon")
+                    elif self.selected_ftype.get() == 'edts':
+                        ftype_supported = True
+                        self.plot_edts(filename)
 
                 if ftype_supported:
                     self.offset = 0
@@ -378,6 +396,26 @@ class SpanshRouter():
                 sys.stderr.write(''.join('!! ' + line for line in lines))
                 self.enable_plot_gui(True)
                 self.show_error("An error occured while reading the file.")
+
+    def plot_edts(self, filename):
+        with open(filename, 'r') as txtfile:
+            route_txt = txtfile.readlines()
+            self.clear_route(False)
+            for row in route_txt:
+                if row not in (None, "", []):
+                    if row.lstrip().startswith('==='):
+                        jumps = int(re.findall("\d+ jump", row)[0].rstrip(' jumps'))
+                        self.jumps_left += jumps
+
+                        system = row[row.find('>') + 1:]
+                        if ',' in system:
+                            systems = system.split(',')
+                            for system in systems:
+                                self.route.append([system.strip(), jumps])
+                                jumps = 1
+                                self.jumps_left += jumps
+                        else:
+                            self.route.append([system.strip(), jumps])
 
     def plot_route(self):
         self.hide_error()
