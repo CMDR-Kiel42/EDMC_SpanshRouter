@@ -12,6 +12,7 @@ import Tkinter as tk
 import tkFileDialog as filedialog
 import tkMessageBox as confirmDialog
 from time import sleep
+from config import config
 from monitor import monitor
 from . import AutoCompleter
 from . import PlaceHolderEntry
@@ -36,6 +37,14 @@ class SpanshRouter():
         self.jumps_left = 0
         self.error_txt = tk.StringVar()
         self.plot_error = "Error while trying to plot a route, please try again."
+        self.selected_ftype = tk.StringVar()
+        self.selected_ftype.set("spansh")
+        self.FILETYPES = [
+            ("Spansh file", "spansh"),
+            ("Text file", "text"),
+            ("Text file with stations", "text_stations"),
+            ("EDTS file", "edts"),
+        ]
 
     #   -- GUI part -- 
     def init_gui(self, parent):
@@ -61,8 +70,14 @@ class SpanshRouter():
         self.plot_route_btn = tk.Button(self.frame, text="Calculate", command=self.plot_route)
         self.cancel_plot = tk.Button(self.frame, text="Cancel", command=lambda: self.show_plot_gui(False))
         
-        self.csv_route_btn = tk.Button(self.frame, text="Import file", command=self.plot_file)
+        self.file_route_button = tk.Button(self.frame, text="Import file", command=self.show_ftype_selection)
+        self.file_plot_button = tk.Button(self.frame, text="Select file...", command=self.plot_file)
         self.clear_route_btn = tk.Button(self.frame, text="Clear route", command=self.clear_route)
+
+        # File types radio buttons
+        self.selected_ftype_rbuttons = {}
+        for text, value in self.FILETYPES:
+            self.selected_ftype_rbuttons[value] = tk.Radiobutton(self.frame, text=text, variable=self.selected_ftype, value=value, highlightthickness=0)
 
         row = 0
         self.waypoint_prev_btn.grid(row=row, columnspan=2)
@@ -79,11 +94,17 @@ class SpanshRouter():
         row += 1
         self.efficiency_slider.grid(row=row, pady=10, columnspan=2, sticky=tk.EW)
         row += 1
-        self.csv_route_btn.grid(row=row, pady=10, padx=0)
+        self.file_route_button.grid(row=row, pady=10, padx=0)
         self.plot_route_btn.grid(row=row, pady=10, padx=0)
         self.plot_gui_btn.grid(row=row, column=1, pady=10, padx=5, sticky=tk.W)
         self.cancel_plot.grid(row=row, column=1, pady=10, padx=5, sticky=tk.E)
+        self.file_plot_button.grid(row=row, column=0, pady=10, padx=5, sticky=tk.W)
+        self.file_plot_button.grid_remove()
         row += 1
+        for text, value in self.FILETYPES:
+            self.selected_ftype_rbuttons[value].grid(row=row, sticky=tk.W)
+            self.selected_ftype_rbuttons[value].grid_remove()
+            row += 1
         self.clear_route_btn.grid(row=row,column=1)
         row += 1
         self.jumpcounttxt_lbl.grid(row=row, pady=5, sticky=tk.W)
@@ -126,7 +147,7 @@ class SpanshRouter():
             self.clear_route_btn.grid_remove()
 
             self.plot_gui_btn.grid_remove()
-            self.csv_route_btn.grid_remove()
+            self.file_route_button.grid_remove()
             self.source_ac.grid()
             self.source_ac.set_text(monitor.system)
             self.dest_ac.grid()
@@ -157,7 +178,7 @@ class SpanshRouter():
             self.plot_route_btn.grid_remove()
             self.cancel_plot.grid_remove()
             self.plot_gui_btn.grid()
-            self.csv_route_btn.grid()
+            self.file_route_button.grid()
             self.show_route_gui(True)
 
     def set_source_ac(self, text):
@@ -234,6 +255,15 @@ class SpanshRouter():
             self.plot_route_btn.update_idletasks()
             self.cancel_plot.config(state=tk.DISABLED)
             self.cancel_plot.update_idletasks()
+    
+    def show_ftype_selection(self):
+        self.file_route_button.grid_remove()
+        self.file_plot_button.grid()
+        theme = config.getint('theme')
+        for text, value in self.FILETYPES:
+            #SUNKEN, RAISED, GROOVE, RIDGE, or FLAT
+            self.selected_ftype_rbuttons[value]['selectcolor'] = "black" if theme else "white"
+            self.selected_ftype_rbuttons[value].grid()
 
     #   -- END GUI part -- 
 
@@ -300,7 +330,7 @@ class SpanshRouter():
         changelog_url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/blob/master/CHANGELOG.md#'
         changelog_url += self.spansh_updater.version.replace('.', '')
         webbrowser.open(changelog_url)
-    
+
     def plot_file(self):
         ftypes = [
             ('All supported files', '*.csv *.txt'),
@@ -323,7 +353,7 @@ class SpanshRouter():
                         self.clear_route(False)
                         for row in route_reader:
                             if row not in (None, "", []):
-                                self.route.append([row[0], row[4]])
+                                self.route.append([row[0].rstrip(), row[4]])
                                 self.jumps_left += int(row[4])
                 elif filename.endswith(".txt"):
                     ftype_supported = True
