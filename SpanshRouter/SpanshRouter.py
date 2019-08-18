@@ -128,6 +128,7 @@ class SpanshRouter():
             self.plot_gui_btn.grid_remove()
             self.csv_route_btn.grid_remove()
             self.source_ac.grid()
+            self.source_ac.set_text(monitor.system)
             self.dest_ac.grid()
             self.range_entry.grid()
             self.efficiency_slider.grid()

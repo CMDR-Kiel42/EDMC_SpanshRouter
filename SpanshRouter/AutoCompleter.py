@@ -14,7 +14,7 @@ class AutoCompleter(Entry, PlaceHolder):
     def __init__(self, parent, placeholder, **kw):
         Entry.__init__(self, parent, **kw)
         self.var = self["textvariable"] = StringVar()
-        self.var.trace('w', self.changed)
+        self.var.traceid = self.var.trace('w', self.changed)
 
         self.parent = parent
 
@@ -176,6 +176,13 @@ class AutoCompleter(Entry, PlaceHolder):
         except Queue.Empty:
             pass
         self.after(100, self.update_me)
+    
+    def set_text(self, text):
+        self.var.trace_vdelete("w", self.var.traceid)
+        self.set_default_style()
+        self.delete(0, END)
+        self.insert(0, text)
+        self.var.traceid = self.var.trace('w', self.changed)
 
 if __name__ == '__main__':
     root = Tk()
