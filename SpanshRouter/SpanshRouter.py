@@ -7,6 +7,7 @@ import csv
 import subprocess
 import webbrowser
 import json
+import re
 import requests
 import Tkinter as tk
 import tkFileDialog as filedialog
@@ -327,12 +328,7 @@ class SpanshRouter():
                                 self.jumps_left += int(row[4])
                 elif filename.endswith(".txt"):
                     ftype_supported = True
-                    with open(filename, 'r') as txtfile:
-                        route_txt = txtfile.readlines()
-                        self.clear_route(False)
-                        for row in route_txt:
-                            if row not in (None, "", []):
-                                self.route.append([row.rstrip(), 0])
+                    self.plot_edts(filename)
 
                 if ftype_supported:
                     self.offset = 0
@@ -440,6 +436,33 @@ class SpanshRouter():
             sys.stderr.write(''.join('!! ' + line for line in lines))
             self.enable_plot_gui(True)
             self.show_error(self.plot_error)
+
+    def plot_edts(self, filename):
+        try:
+            with open(filename, 'r') as txtfile:
+                route_txt = txtfile.readlines()
+                self.clear_route(False)
+                for row in route_txt:
+                    if row not in (None, "", []):
+                        if row.lstrip().startswith('==='):
+                            jumps = int(re.findall("\d+ jump", row)[0].rstrip(' jumps'))
+                            self.jumps_left += jumps
+
+                            system = row[row.find('>') + 1:]
+                            if ',' in system:
+                                systems = system.split(',')
+                                for system in systems:
+                                    self.route.append([system.strip(), jumps])
+                                    jumps = 1
+                                    self.jumps_left += jumps
+                            else:
+                                self.route.append([system.strip(), jumps])
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            sys.stderr.write(''.join('!! ' + line for line in lines))
+            self.enable_plot_gui(True)
+            self.show_error("An error occured while reading the file.")
 
     def clear_route(self, show_dialog=True):
         clear = confirmDialog.askyesno("SpanshRouter","Are you sure you want to clear the current route?") if show_dialog else True
