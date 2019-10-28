@@ -76,11 +76,12 @@ class AutoCompleter(Entry, PlaceHolder):
 
     def changed(self, name, index, mode):
         self.set_default_style()
-        if self.var.get().__len__() < 3 and self.lb_up or self.has_selected:
+        value = self.var.get()
+        if value.__len__() < 3 and self.lb_up or self.has_selected:
             self.hide_list()
             self.has_selected = False
         else:
-            t = threading.Thread(target=self.query_systems)
+            t = threading.Thread(target=self.query_systems, args=[value])
             t.start()
         
     def selection(self, event=None):
@@ -143,8 +144,8 @@ class AutoCompleter(Entry, PlaceHolder):
             self.lb.grid_remove()
             self.lb_up = False
 
-    def query_systems(self):
-        inp = self.var.get().strip()
+    def query_systems(self, inp):
+        inp = inp.strip()
         if inp != self.placeholder and inp.__len__() >= 3:
             url = "https://spansh.co.uk/api/systems?"
             try:
