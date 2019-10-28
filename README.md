@@ -13,7 +13,17 @@ This plugin's purpose is to automatically copy to your clipboard the next waypoi
 
 ## How to use
 
-You can either plot your route directly from EDMC, or you can import a CSV file from [Spansh](https://www.spansh.co.uk/plotter)
+You can either plot your route directly from EDMC by clicking the "Plot Route" button, or you can import a CSV file from [Spansh](https://www.spansh.co.uk/plotter)
+You can also create your own CSV file, as long as it contains the columns "System Name" and "Jumps" (that last one is optional).
+A valid CSV file could look like:
+
+```csv
+System Name,Jumps
+Saggitarius A*,5
+Beagle Point,324
+```
+
+You can also use a .txt file created with [EDTS](https://bitbucket.org/Esvandiary/edts/wiki/edts)
 
 Once your route is plotted, and every time you reach a waypoint, the next one is automatically copied to your clipboard.
 
