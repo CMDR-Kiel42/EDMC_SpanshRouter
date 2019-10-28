@@ -37,6 +37,8 @@ class SpanshRouter():
         self.jumps_left = 0
         self.error_txt = tk.StringVar()
         self.plot_error = "Error while trying to plot a route, please try again."
+        self.system_header = "System Name"
+        self.jumps_header = "Jumps"
 
     #   -- GUI part -- 
     def init_gui(self, parent):
@@ -242,24 +244,28 @@ class SpanshRouter():
     def open_last_route(self):
         try:
             with open(self.save_route_path, 'r') as csvfile:
-                route_reader = csv.reader(csvfile)
+                # Check if the file has a header for compatibility with previous versions
+                dict_route_reader = csv.DictReader(csvfile)
+                if dict_route_reader.fieldnames[0] != self.system_header:
+                    route_reader = csv.reader(csvfile)
 
-                for row in route_reader:
-                    if row not in (None, "", []):
-                        self.route.append(row)
+                    for row in route_reader:
+                        if row not in (None, "", []):
+                            self.route.append(row)
 
-                try:
-                    with open(self.offset_file_path, 'r') as offset_fh:
-                        self.offset = int(offset_fh.readline())
+                    try:
+                        with open(self.offset_file_path, 'r') as offset_fh:
+                            self.offset = int(offset_fh.readline())
 
-                except:
-                    self.offset = 0
+                    except:
+                        self.offset = 0
 
-            for row in self.route[self.offset:]:
-                self.jumps_left += int(row[1])
+                for row in self.route[self.offset:]:
+                    if row[1] not in [None, "", []]:
+                        self.jumps_left += int(row[1])
 
-            self.next_stop = self.route[self.offset][0]
-            self.copy_waypoint()
+                self.next_stop = self.route[self.offset][0]
+                self.copy_waypoint()
         except:
             print("No previously saved route.")
 
@@ -282,11 +288,13 @@ class SpanshRouter():
 
     def update_route(self, direction=1):
         if direction > 0:
-            self.jumps_left -= int(self.route[self.offset][1])
+            if self.route[self.offset][1] not in [None, "", []]:
+                self.jumps_left -= int(self.route[self.offset][1])
             self.offset += 1
         else:
             self.offset -= 1
-            self.jumps_left += int(self.route[self.offset][1])
+            if self.route[self.offset][1] not in [None, "", []]:
+                self.jumps_left += int(self.route[self.offset][1])
 
         if self.offset >= self.route.__len__():
             self.next_stop = "End of the road!"
@@ -315,17 +323,8 @@ class SpanshRouter():
                 ftype_supported = False
                 if filename.endswith(".csv"):
                     ftype_supported = True
-                    with open(filename, 'r') as csvfile:
-                        route_reader = csv.reader(csvfile)
-
-                        # Skip the header
-                        route_reader.next()
-
-                        self.clear_route(False)
-                        for row in route_reader:
-                            if row not in (None, "", []):
-                                self.route.append([row[0], row[4]])
-                                self.jumps_left += int(row[4])
+                    self.plot_csv(filename)
+                    
                 elif filename.endswith(".txt"):
                     ftype_supported = True
                     self.plot_edts(filename)
@@ -344,6 +343,20 @@ class SpanshRouter():
                 sys.stderr.write(''.join('!! ' + line for line in lines))
                 self.enable_plot_gui(True)
                 self.show_error("An error occured while reading the file.")
+
+    def plot_csv(self, filename):
+        with open(filename, 'r') as csvfile:
+            route_reader = csv.DictReader(csvfile)
+
+            self.clear_route(False)
+            for row in route_reader:
+                if row not in (None, "", []):
+                    self.route.append([
+                        row[self.system_header], 
+                        row.get(self.jumps_header, "") # Jumps column is optional
+                    ])
+                    if row.get(self.jumps_header) != None:
+                        self.jumps_left += int(row[self.jumps_header])
 
     def plot_route(self):
         self.hide_error()
