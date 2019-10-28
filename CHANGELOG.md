@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.2.0
+
+- Now supports any CSV having columns named "System Name" and "Jumps". The "Jumps" column is optional
+- Supports text files given by EDTS (it is the only .txt file supported for now)
+- The "Start System" in the potter is now automatically set to the one you are currently in
+- Fixed a bug where the plugin could make EDMC crash by accessing TkInter state in a thread
+
 ## 2.1.4
 
 - Autosaves your progress more often in case EDMC crashes
