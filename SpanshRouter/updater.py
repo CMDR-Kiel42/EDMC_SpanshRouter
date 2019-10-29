@@ -5,6 +5,7 @@ import requests
 import zipfile
 import sys
 import traceback
+import json
 
 class SpanshUpdater():
     def __init__(self, version, plugin_dir):
@@ -49,14 +50,16 @@ class SpanshUpdater():
                 sys.stderr.write(''.join('!! ' + line for line in lines))
 
     def get_changelog(self):
-        url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/CHANGELOG.md"
+        url = "https://api.github.com/repos/CMDR-Kiel42/EDMC_SpanshRouter/releases/latest"
         try:
             r = requests.get(url, timeout=2)
             
             if r.status_code == 200:
-                start_index = r.content.find("## " + self.version)
-                stop_index = r.content.find("##", start_index + 2)
-                self.changelogs = r.content[start_index: stop_index:]
+                # Get the changelog and replace all breaklines with simple ones
+                self.changelogs = json.loads(r.content)["body"]
+                self.changelogs = "\n".join(self.changelogs.splitlines())
+                pass
+
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
