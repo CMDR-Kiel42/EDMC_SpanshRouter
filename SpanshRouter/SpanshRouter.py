@@ -111,11 +111,13 @@ class SpanshRouter():
             update_txt = "New Spansh update available!\n"
             update_txt += "If you choose to install it, you will have to restart EDMC for it to take effect.\n\n"
             update_txt += self.spansh_updater.changelogs
-            update_txt += "Install?"
+            update_txt += "\n\nInstall?"
             install_update = confirmDialog.askyesno("SpanshRouter", update_txt)
 
             if install_update:
-                confirmDialog.showinfo("SpanshRouter", "The update will be installed as soon as you close EDMC.")
+                confirmDialog.showinfo("SpanshRouter", "The update will be installed as soon as you quit EDMC.")
+            else:
+                self.update_available = False
         
         self.update_gui()
 
@@ -569,11 +571,6 @@ class SpanshRouter():
                 if self.plugin_version != response.content:
                     self.update_available = True
                     self.spansh_updater = SpanshUpdater(response.content, self.plugin_dir)
-                    
-                    if self.spansh_updater.download_zip():
-                        self.spansh_updater.get_changelog()
-                    else:
-                        sys.stderr.write("Error when downloading the latest SpanshRouter update")
                     
             else:
                 sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
