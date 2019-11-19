@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2.2.1
+
+- Changes from updates now appear in a popup so the user can choose wether they want to install it or not.
+
 ## 2.2.0
 
 - Now supports any CSV having columns named "System Name" and "Jumps". The "Jumps" column is optional

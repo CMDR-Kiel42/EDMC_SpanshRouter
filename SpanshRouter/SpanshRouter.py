@@ -108,14 +108,17 @@ class SpanshRouter():
             self.clear_route_btn.grid_remove()
 
         if self.update_available:
-            update_txt = ("A SpanshRouter update is available.\n"
-                "It will be installed next time you start EDMC.\n"
-                "Click to dismiss this message, right click to see what's new.")
-            self.update_btn = tk.Button(self.frame, text=update_txt, command=lambda: self.update_btn.grid_forget())
-            self.update_btn.bind("<Button-3>", self.goto_changelog_page)
-            self.update_btn.grid(row=row, pady=5, columnspan=2)
-            row += 1
+            update_txt = "New Spansh update available!\n"
+            update_txt += "If you choose to install it, you will have to restart EDMC for it to take effect.\n\n"
+            update_txt += self.spansh_updater.changelogs
+            update_txt += "\n\nInstall?"
+            install_update = confirmDialog.askyesno("SpanshRouter", update_txt)
 
+            if install_update:
+                confirmDialog.showinfo("SpanshRouter", "The update will be installed as soon as you quit EDMC.")
+            else:
+                self.update_available = False
+        
         self.update_gui()
 
         return self.frame
@@ -560,17 +563,15 @@ class SpanshRouter():
 
     def check_for_update(self):
         self.cleanup_old_version()
-        url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/version.json"
+        version_url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/version.json"
         try:
-            response = requests.get(url, timeout=2)
+            response = requests.get(version_url, timeout=2)
             
             if response.status_code == 200:
                 if self.plugin_version != response.content:
                     self.update_available = True
                     self.spansh_updater = SpanshUpdater(response.content, self.plugin_dir)
                     
-                    if not self.spansh_updater.download_zip():
-                        sys.stderr.write("Error when downloading the latest SpanshRouter update")
             else:
                 sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
         except:
