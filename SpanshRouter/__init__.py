@@ -1,4 +1,4 @@
-from updater import SpanshUpdater
-from AutoCompleter import AutoCompleter
-from PlaceHolderEntry import PlaceHolderEntry
+from SpanshRouter.updater import SpanshUpdater
+from SpanshRouter.AutoCompleter import AutoCompleter
+from SpanshRouter.PlaceHolderEntry import PlaceHolderEntry
 from SpanshRouter import SpanshRouter

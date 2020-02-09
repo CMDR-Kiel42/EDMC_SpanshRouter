@@ -1,4 +1,4 @@
-from PlaceHolder import PlaceHolder
+from SpanshRouter.PlaceHolder import PlaceHolder
 
 try:
     # Python 2
