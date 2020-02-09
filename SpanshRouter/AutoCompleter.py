@@ -20,7 +20,7 @@ is_py2 = sys.version[0] == '2'
 if is_py2:
     import Queue as queue
 else:
-    import queue as queue
+    import queue 
     
 
 class AutoCompleter(Entry, PlaceHolder):
@@ -34,7 +34,7 @@ class AutoCompleter(Entry, PlaceHolder):
         self.lb = Listbox(self.parent, selectmode=SINGLE, **kw)
         self.lb_up = False
         self.has_selected = False
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
 
         PlaceHolder.__init__(self, placeholder)
 
@@ -187,7 +187,7 @@ class AutoCompleter(Entry, PlaceHolder):
                 lista = self.queue.get_nowait()
                 self.show_results(lista)
                 self.update_idletasks()
-        except Queue.Empty:
+        except queue.Empty:
             pass
         self.after(100, self.update_me)
     
