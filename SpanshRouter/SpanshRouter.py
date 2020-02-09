@@ -1,5 +1,3 @@
-#! /usr/bin/env python2
-
 import os
 import sys
 import traceback
@@ -9,14 +7,24 @@ import webbrowser
 import json
 import re
 import requests
-import Tkinter as tk
-import tkFileDialog as filedialog
-import tkMessageBox as confirmDialog
 from time import sleep
 from monitor import monitor
 from . import AutoCompleter
 from . import PlaceHolderEntry
 from .updater import SpanshUpdater
+
+try:
+    # Python 2
+    from Tkinter import *
+    import tkFileDialog as filedialog
+    import tkMessageBox as confirmDialog
+    import ttk   
+except ModuleNotFoundError:
+    # Python 3
+    import tkinter as tk
+    from tkinter import *
+    import tkinter.filedialog as filedialog
+    import tkinter.messagebox as confirmDialog
 
 class SpanshRouter():
     def __init__(self, plugin_dir):

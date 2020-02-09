@@ -2,12 +2,16 @@ from SpanshRouter import SpanshRouter
 
 spansh_router = None
 
-def plugin_start(plugin_dir):
+def plugin_start3(plugin_dir):
+    return plugin_start()
+
+def plugin_start():
     # Check for newer versions
     global spansh_router
     spansh_router = SpanshRouter(plugin_dir)
     spansh_router.check_for_update()
     spansh_router.open_last_route()
+    return 'spansh_router'
 
 def plugin_stop():
     global spansh_router

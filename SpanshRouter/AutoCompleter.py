@@ -1,14 +1,27 @@
-#!/usr/bin/env python2
-
 import threading
-import Queue
 import json
 import os
 import requests
 import traceback
-from Tkinter import *
 from time import sleep
 from PlaceHolder import PlaceHolder
+import sys
+
+try:
+    # Python 2
+    from Tkinter import *
+    import ttk   
+except ModuleNotFoundError:
+    # Python 3
+    import tkinter as tk
+    from tkinter import *
+    
+is_py2 = sys.version[0] == '2'
+if is_py2:
+    import Queue as queue
+else:
+    import queue as queue
+    
 
 class AutoCompleter(Entry, PlaceHolder):
     def __init__(self, parent, placeholder, **kw):
