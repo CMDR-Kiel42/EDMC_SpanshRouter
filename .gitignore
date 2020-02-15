@@ -4,3 +4,4 @@
 # Ignore compiles python files
 *.pyo
 *.pyc
+.vscode/settings.json

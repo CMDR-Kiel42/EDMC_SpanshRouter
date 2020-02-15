@@ -1,7 +1,12 @@
-#!/usr/bin/env python2
+from SpanshRouter.PlaceHolder import PlaceHolder
 
-from Tkinter import *
-from PlaceHolder import PlaceHolder
+try:
+    # Python 2
+    from Tkinter import *
+except ModuleNotFoundError:
+    # Python 3
+    import tkinter as tk
+    from tkinter import *
 
 class PlaceHolderEntry(Entry, PlaceHolder):
     def __init__(self, parent, placeholder, **kw):

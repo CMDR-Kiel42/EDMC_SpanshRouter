@@ -1,13 +1,23 @@
-from SpanshRouter import SpanshRouter
+import sys
+is_py2 = sys.version[0] == '2'
+if is_py2:
+    from SpanshRouter import SpanshRouter
+else:
+    from SpanshRouter.SpanshRouter import SpanshRouter
 
-spansh_router = None
+def plugin_start3(plugin_dir):
+    global spansh_router
+    spansh_router = SpanshRouter(plugin_dir)
+    #spansh_router.check_for_update()
+    spansh_router.open_last_route()
+    return 'spansh_router'
 
 def plugin_start(plugin_dir):
     # Check for newer versions
-    global spansh_router
     spansh_router = SpanshRouter(plugin_dir)
     spansh_router.check_for_update()
     spansh_router.open_last_route()
+    return 'spansh_router'
 
 def plugin_stop():
     global spansh_router

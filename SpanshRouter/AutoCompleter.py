@@ -1,14 +1,27 @@
-#!/usr/bin/env python2
-
 import threading
-import Queue
 import json
 import os
 import requests
 import traceback
-from Tkinter import *
 from time import sleep
-from PlaceHolder import PlaceHolder
+from SpanshRouter.PlaceHolder import PlaceHolder
+import sys
+
+try:
+    # Python 2
+    from Tkinter import *
+    import ttk   
+except ModuleNotFoundError:
+    # Python 3
+    import tkinter as tk
+    from tkinter import *
+    
+is_py2 = sys.version[0] == '2'
+if is_py2:
+    import Queue as queue
+else:
+    import queue 
+    
 
 class AutoCompleter(Entry, PlaceHolder):
     def __init__(self, parent, placeholder, **kw):
@@ -21,7 +34,7 @@ class AutoCompleter(Entry, PlaceHolder):
         self.lb = Listbox(self.parent, selectmode=SINGLE, **kw)
         self.lb_up = False
         self.has_selected = False
-        self.queue = Queue.Queue()
+        self.queue = queue.Queue()
 
         PlaceHolder.__init__(self, placeholder)
 
@@ -174,7 +187,7 @@ class AutoCompleter(Entry, PlaceHolder):
                 lista = self.queue.get_nowait()
                 self.show_results(lista)
                 self.update_idletasks()
-        except Queue.Empty:
+        except queue.Empty:
             pass
         self.after(100, self.update_me)
     

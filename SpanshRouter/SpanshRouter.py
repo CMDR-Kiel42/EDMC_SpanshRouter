@@ -1,5 +1,3 @@
-#! /usr/bin/env python2
-
 import os
 import sys
 import traceback
@@ -9,21 +7,31 @@ import webbrowser
 import json
 import re
 import requests
-import Tkinter as tk
-import tkFileDialog as filedialog
-import tkMessageBox as confirmDialog
 from time import sleep
 from monitor import monitor
 from . import AutoCompleter
 from . import PlaceHolderEntry
 from .updater import SpanshUpdater
 
+try:
+    # Python 2
+    from Tkinter import *
+    import tkFileDialog as filedialog
+    import tkMessageBox as confirmDialog
+    import ttk
+except ModuleNotFoundError:
+    # Python 3
+    import tkinter as tk
+    from tkinter import *
+    import tkinter.filedialog as filedialog
+    import tkinter.messagebox as confirmDialog
+
 class SpanshRouter():
     def __init__(self, plugin_dir):
         version_file = os.path.join(plugin_dir, "version.json")
         with open(version_file, 'r') as version_fd:
             self.plugin_version = version_fd.read()
-            
+
         self.update_available = False
         self.next_stop = "No route planned"
         self.route = []
@@ -40,7 +48,7 @@ class SpanshRouter():
         self.system_header = "System Name"
         self.jumps_header = "Jumps"
 
-    #   -- GUI part -- 
+    #   -- GUI part --
     def init_gui(self, parent):
         self.parent = parent
         parentwidth = parent.winfo_width()
@@ -63,7 +71,7 @@ class SpanshRouter():
         self.plot_gui_btn = tk.Button(self.frame, text="Plot route", command=self.show_plot_gui)
         self.plot_route_btn = tk.Button(self.frame, text="Calculate", command=self.plot_route)
         self.cancel_plot = tk.Button(self.frame, text="Cancel", command=lambda: self.show_plot_gui(False))
-        
+
         self.csv_route_btn = tk.Button(self.frame, text="Import file", command=self.plot_file)
         self.clear_route_btn = tk.Button(self.frame, text="Clear route", command=self.clear_route)
 
@@ -118,7 +126,7 @@ class SpanshRouter():
                 confirmDialog.showinfo("SpanshRouter", "The update will be installed as soon as you quit EDMC.")
             else:
                 self.update_available = False
-        
+
         self.update_gui()
 
         return self.frame
@@ -241,7 +249,7 @@ class SpanshRouter():
             self.cancel_plot.config(state=tk.DISABLED)
             self.cancel_plot.update_idletasks()
 
-    #   -- END GUI part -- 
+    #   -- END GUI part --
 
 
     def open_last_route(self):
@@ -320,7 +328,7 @@ class SpanshRouter():
         changelog_url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/blob/master/CHANGELOG.md#'
         changelog_url += self.spansh_updater.version.replace('.', '')
         webbrowser.open(changelog_url)
-    
+
     def plot_file(self):
         ftypes = [
             ('All supported files', '*.csv *.txt'),
@@ -335,7 +343,7 @@ class SpanshRouter():
                 if filename.endswith(".csv"):
                     ftype_supported = True
                     self.plot_csv(filename)
-                    
+
                 elif filename.endswith(".txt"):
                     ftype_supported = True
                     self.plot_edts(filename)
@@ -364,7 +372,7 @@ class SpanshRouter():
             for row in route_reader:
                 if row not in (None, "", []):
                     self.route.append([
-                        row[self.system_header], 
+                        row[self.system_header],
                         row.get(self.jumps_header, "") # Jumps column is optional
                     ])
                     if row.get(self.jumps_header) != None:
@@ -397,7 +405,7 @@ class SpanshRouter():
 
                 if results.status_code == 202:
                     self.enable_plot_gui(False)
-                    
+
                     tries = 0
                     while(tries < 20):
                         response = json.loads(results.content)
@@ -420,7 +428,7 @@ class SpanshRouter():
                             self.enable_plot_gui(True)
                             self.show_plot_gui(False)
                             self.offset = 1 if self.route[0][0] == monitor.system else 0
-                            self.next_stop = self.route[self.offset][0] 
+                            self.next_stop = self.route[self.offset][0]
                             self.copy_waypoint()
                             self.update_gui()
                             self.save_all_route()
@@ -430,7 +438,7 @@ class SpanshRouter():
                             failure = json.loads(results.content)
 
                             if route_response.status_code == 400 and "error" in failure:
-                                self.show_error(failure["error"])  
+                                self.show_error(failure["error"])
                                 if "starting system" in failure["error"]:
                                     self.source_ac["fg"] = "red"
                                 if "finishing system" in failure["error"]:
@@ -447,14 +455,14 @@ class SpanshRouter():
                     failure = json.loads(results.content)
 
                     if results.status_code == 400 and "error" in failure:
-                        self.show_error(failure["error"])  
+                        self.show_error(failure["error"])
                         if "starting system" in failure["error"]:
                             self.source_ac["fg"] = "red"
                         if "finishing system" in failure["error"]:
                             self.dest_ac["fg"] = "red"
                     else:
                         self.show_error(self.plot_error)
-                    
+
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
@@ -524,7 +532,7 @@ class SpanshRouter():
                 os.remove(self.save_route_path)
             except:
                 print("No route to delete")
-    
+
     def save_offset(self):
         if self.route.__len__() != 0:
             with open(self.offset_file_path, 'w') as offset_fh:
@@ -553,7 +561,7 @@ class SpanshRouter():
                 files_list = os.listdir(self.plugin_dir)
 
                 for filename in files_list:
-                    if (filename != "load.py" 
+                    if (filename != "load.py"
                     and (filename.endswith(".py") or filename.endswith(".pyc") or filename.endswith(".pyo"))):
                         os.remove(os.path.join(self.plugin_dir, filename))
         except:
@@ -566,12 +574,12 @@ class SpanshRouter():
         version_url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/version.json"
         try:
             response = requests.get(version_url, timeout=2)
-            
+
             if response.status_code == 200:
                 if self.plugin_version != response.content:
                     self.update_available = True
                     self.spansh_updater = SpanshUpdater(response.content, self.plugin_dir)
-                    
+
             else:
                 sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
         except:
