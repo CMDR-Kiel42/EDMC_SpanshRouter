@@ -51,7 +51,6 @@ class SpanshRouter():
     #   -- GUI part --
     def init_gui(self, parent):
         self.parent = parent
-        parentwidth = parent.winfo_width()
         self.frame = tk.Frame(parent, borderwidth=2)
         self.frame.grid(sticky=tk.NSEW, columnspan=2)
 
@@ -335,7 +334,7 @@ class SpanshRouter():
             ('CSV files', '*.csv'),
             ('Text files', '*.txt'),
         ]
-        filename = filedialog.askopenfilename(filetypes = ftypes)
+        filename = filedialog.askopenfilename(filetypes = ftypes, initialdir=os.path.expanduser('~'))
 
         if filename.__len__() > 0:
             try:
@@ -364,7 +363,7 @@ class SpanshRouter():
                 self.show_error("An error occured while reading the file.")
 
     def plot_csv(self, filename, clear_previous_route=True):
-        with open(filename, 'r') as csvfile:
+        with open(filename, 'r', encoding='utf-8-sig') as csvfile:
             route_reader = csv.DictReader(csvfile)
 
             if clear_previous_route:
