@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.0
+
+- Add compatibility with the Python 3 version of EDMC
+- Fixed an issue with CSV files containing a BOM code (added by some programs such as Microsoft Excel)
+- When browsing to import a file, set starting directory at user's home
+
 ## 2.2.1
 
 - Changes from updates now appear in a popup so the user can choose wether they want to install it or not.
