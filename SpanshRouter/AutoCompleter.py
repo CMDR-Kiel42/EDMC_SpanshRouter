@@ -4,17 +4,18 @@ import os
 import requests
 import traceback
 from time import sleep
-from SpanshRouter.PlaceHolder import PlaceHolder
 import sys
 
 try:
     # Python 2
     from Tkinter import *
-    import ttk   
+    import ttk
+    from .PlaceHolder import PlaceHolder
 except ModuleNotFoundError:
     # Python 3
     import tkinter as tk
     from tkinter import *
+    from SpanshRouter.PlaceHolder import PlaceHolder
     
 is_py2 = sys.version[0] == '2'
 if is_py2:

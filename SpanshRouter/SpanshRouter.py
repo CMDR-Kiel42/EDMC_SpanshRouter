@@ -7,6 +7,7 @@ import webbrowser
 import json
 import re
 import requests
+import io
 from time import sleep
 from monitor import monitor
 from . import AutoCompleter
@@ -16,6 +17,7 @@ from .updater import SpanshUpdater
 try:
     # Python 2
     from Tkinter import *
+    import Tkinter as tk
     import tkFileDialog as filedialog
     import tkMessageBox as confirmDialog
     import ttk
@@ -286,6 +288,9 @@ class SpanshRouter():
             self.copy_waypoint()
         except:
             print("No previously saved route.")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            sys.stderr.write(''.join('!! ' + line for line in lines))
 
     def copy_waypoint(self):
         if sys.platform == "linux" or sys.platform == "linux2":
@@ -363,7 +368,7 @@ class SpanshRouter():
                 self.show_error("An error occured while reading the file.")
 
     def plot_csv(self, filename, clear_previous_route=True):
-        with open(filename, 'r', encoding='utf-8-sig') as csvfile:
+        with io.open(filename, 'r', encoding='utf-8-sig') as csvfile:
             route_reader = csv.DictReader(csvfile)
 
             if clear_previous_route:

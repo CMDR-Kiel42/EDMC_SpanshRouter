@@ -8,12 +8,13 @@ else:
 def plugin_start3(plugin_dir):
     global spansh_router
     spansh_router = SpanshRouter(plugin_dir)
-    #spansh_router.check_for_update()
+    spansh_router.check_for_update()
     spansh_router.open_last_route()
     return 'spansh_router'
 
 def plugin_start(plugin_dir):
     # Check for newer versions
+    global spansh_router
     spansh_router = SpanshRouter(plugin_dir)
     spansh_router.check_for_update()
     spansh_router.open_last_route()
