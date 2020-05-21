@@ -116,18 +116,6 @@ class SpanshRouter():
             self.jumpcounttxt_lbl.grid_remove()
             self.clear_route_btn.grid_remove()
 
-        if self.update_available:
-            update_txt = "New Spansh update available!\n"
-            update_txt += "If you choose to install it, you will have to restart EDMC for it to take effect.\n\n"
-            update_txt += self.spansh_updater.changelogs
-            update_txt += "\n\nInstall?"
-            install_update = confirmDialog.askyesno("SpanshRouter", update_txt)
-
-            if install_update:
-                confirmDialog.showinfo("SpanshRouter", "The update will be installed as soon as you quit EDMC.")
-            else:
-                self.update_available = False
-
         self.update_gui()
 
         return self.frame
