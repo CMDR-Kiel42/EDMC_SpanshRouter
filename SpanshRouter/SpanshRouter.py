@@ -566,11 +566,11 @@ class SpanshRouter():
         version_url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/version.json"
         try:
             response = requests.get(version_url, timeout=2)
-
+            new_version = response.content.decode("utf-8") if type(response.content) == bytes else response.content
             if response.status_code == 200:
-                if self.plugin_version != response.content:
+                if self.plugin_version != new_version:
                     self.update_available = True
-                    self.spansh_updater = SpanshUpdater(response.content, self.plugin_dir)
+                    self.spansh_updater = SpanshUpdater(new_version, self.plugin_dir)
 
             else:
                 sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)

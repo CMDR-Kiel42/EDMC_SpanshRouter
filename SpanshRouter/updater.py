@@ -8,11 +8,7 @@ import json
 class SpanshUpdater():
     def __init__(self, version, plugin_dir):
         self.version = version
-        is_py2 = sys.version[0] == '2'
-        if is_py2:
-            self.zip_name = "EDMC_SpanshRouter_" + version.replace('.', '') + ".zip"
-        else:
-            self.zip_name = "EDMC_SpanshRouter_" + version.decode('utf-8') + ".zip"
+        self.zip_name = "EDMC_SpanshRouter_" + version.replace('.', '') + ".zip"
         self.plugin_dir = plugin_dir
         self.zip_path = os.path.join(self.plugin_dir, self.zip_name)
         self.zip_downloaded = False
