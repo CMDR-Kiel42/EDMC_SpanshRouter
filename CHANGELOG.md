@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.2
+
+- Fixed an issue where the update popup would crash EDMC
+
+## 3.0.1
+
+- Fixed issues with Python 2
+
 ## 3.0.0
 
 - Add compatibility with the Python 3 version of EDMC
