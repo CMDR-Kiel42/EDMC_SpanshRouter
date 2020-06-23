@@ -274,8 +274,11 @@ class SpanshRouter():
 
             self.next_stop = self.route[self.offset][0]
             self.copy_waypoint()
-        except:
+            self.update_gui()
+
+        except IOError:
             print("No previously saved route.")
+        except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             sys.stderr.write(''.join('!! ' + line for line in lines))

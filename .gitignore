@@ -5,3 +5,7 @@
 *.pyo
 *.pyc
 .vscode/settings.json
+
+.vscode/
+
+offset
