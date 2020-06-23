@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.3
+
+- Fixed "no previously saved route" message even though a saved route was present
+- Allow single click selection in the "Plot route" interface
+- Fixed update issue when using Python 3
+
 ## 3.0.2
 
 - Fixed an issue where the update popup would crash EDMC
