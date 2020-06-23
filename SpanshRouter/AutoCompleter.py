@@ -49,7 +49,7 @@ class AutoCompleter(Entry, PlaceHolder):
         self.lb.bind("<Any-Key>", self.keypressed)
         self.bind('<Control-KeyRelease-a>', self.select_all)
         self.bind('<Button-3>', self.show_menu)
-        self.lb.bind("<Double-Button-1>", self.selection)
+        self.lb.bind("<ButtonRelease-1>", self.selection)
         self.bind("<FocusOut>", self.ac_foc_out)
         self.lb.bind("<FocusOut>", self.ac_foc_out)
 
@@ -101,7 +101,8 @@ class AutoCompleter(Entry, PlaceHolder):
     def selection(self, event=None):
         if self.lb_up:
             self.has_selected = True
-            self.var.set(self.lb.get(ACTIVE))
+            index = self.lb.curselection()
+            self.var.set(self.lb.get(index))
             self.hide_list()
             self.icursor(END)
 
