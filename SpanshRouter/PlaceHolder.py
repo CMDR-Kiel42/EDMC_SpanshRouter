@@ -15,12 +15,14 @@ class PlaceHolder(Entry):
         self.put_placeholder()
 
     def put_placeholder(self):
-        self['fg'] = self.placeholder_color
         if self.get() != self.placeholder:
-            self.set_text(self.placeholder)
+            self.set_text(self.placeholder, True)
 
-    def set_text(self, text):
-        self.set_default_style()
+    def set_text(self, text, placeholder_style=True):
+        if placeholder_style:
+            self['fg'] = self.placeholder_color
+        else:
+            self.set_default_style()
         self.delete(0, END)
         self.insert(0, text)
 

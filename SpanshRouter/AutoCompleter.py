@@ -73,7 +73,6 @@ class AutoCompleter(PlaceHolder):
         event.widget.event_generate('<<SelectAll>>')
 
     def changed(self, name=None, index=None, mode=None):
-        self.set_default_style()
         value = self.var.get()
         if value.__len__() < 3 and self.lb_up or self.has_selected:
             self.hide_list()
@@ -177,13 +176,17 @@ class AutoCompleter(PlaceHolder):
             pass
         self.after(100, self.update_me)
     
-    def set_text(self, text):
+    def set_text(self, text, placeholder_style=True):
+        if placeholder_style:
+            self['fg'] = self.placeholder_color
+        else:
+            self.set_default_style()
+
         try:
             self.var.trace_vdelete("w", self.var.traceid)
         except:
             pass
         finally:
-            self.set_default_style()
             self.delete(0, END)
             self.insert(0, text)
             self.var.traceid = self.var.trace('w', self.changed)

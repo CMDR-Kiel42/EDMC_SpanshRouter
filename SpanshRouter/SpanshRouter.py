@@ -127,13 +127,6 @@ class SpanshRouter():
             self.plot_route_btn.grid()
             self.cancel_plot.grid()
 
-            # Workaround because EDMC keeps switching the placeholder to bright white
-            if self.source_ac.get() == self.source_ac.placeholder:
-                self.source_ac.force_placeholder_color()
-            if self.dest_ac.get() == self.dest_ac.placeholder:
-                self.dest_ac.force_placeholder_color()
-            if self.range_entry.get() == self.range_entry.placeholder:
-                self.range_entry.force_placeholder_color()
             self.show_route_gui(False)
 
         else:
