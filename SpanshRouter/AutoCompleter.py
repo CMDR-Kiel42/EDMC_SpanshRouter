@@ -10,11 +10,8 @@ from SpanshRouter.PlaceHolder import PlaceHolder
 import queue 
     
 
-class AutoCompleter(Entry, PlaceHolder):
+class AutoCompleter(PlaceHolder):
     def __init__(self, parent, placeholder, **kw):
-        Entry.__init__(self, parent, **kw)
-        self.var = self["textvariable"] = StringVar()
-        self.var.traceid = self.var.trace('w', self.changed)
 
         self.parent = parent
 
@@ -23,7 +20,8 @@ class AutoCompleter(Entry, PlaceHolder):
         self.has_selected = False
         self.queue = queue.Queue()
 
-        PlaceHolder.__init__(self, placeholder)
+        PlaceHolder.__init__(self, parent, placeholder, **kw)
+        self.var.traceid = self.var.trace('w', self.changed)
 
         # Create right click menu
         self.menu = Menu(self.parent, tearoff=0)
@@ -180,11 +178,15 @@ class AutoCompleter(Entry, PlaceHolder):
         self.after(100, self.update_me)
     
     def set_text(self, text):
-        self.var.trace_vdelete("w", self.var.traceid)
-        self.set_default_style()
-        self.delete(0, END)
-        self.insert(0, text)
-        self.var.traceid = self.var.trace('w', self.changed)
+        try:
+            self.var.trace_vdelete("w", self.var.traceid)
+        except:
+            pass
+        finally:
+            self.set_default_style()
+            self.delete(0, END)
+            self.insert(0, text)
+            self.var.traceid = self.var.trace('w', self.changed)
 
 if __name__ == '__main__':
     root = Tk()

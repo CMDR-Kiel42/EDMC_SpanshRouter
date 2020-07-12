@@ -1,8 +1,11 @@
 from config import config
-from tkinter import END
+from tkinter import Entry, END, StringVar
 
-class PlaceHolder():
-    def __init__(self, placeholder, **kw):
+class PlaceHolder(Entry):
+    def __init__(self, parent, placeholder, **kw):
+        if parent is not None:
+            Entry.__init__(self, parent, **kw)
+        self.var = self["textvariable"] = StringVar()
         self.placeholder = placeholder
         self.placeholder_color = "grey"
 

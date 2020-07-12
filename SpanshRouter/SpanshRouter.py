@@ -11,22 +11,11 @@ import io
 from time import sleep
 from monitor import monitor
 from . import AutoCompleter
-from . import PlaceHolderEntry
+from . import PlaceHolder
 from .updater import SpanshUpdater
 import tkinter as tk
-# from tkinter import *
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as confirmDialog
-
-# try:
-#     # Python 2
-#     from Tkinter import *
-#     import Tkinter as tk
-#     import tkFileDialog as filedialog
-#     import tkMessageBox as confirmDialog
-#     import ttk
-# except ModuleNotFoundError:
-#     # Python 3
 
 class SpanshRouter():
     def __init__(self, plugin_dir):
@@ -66,7 +55,7 @@ class SpanshRouter():
         # Plotting GUI
         self.source_ac = AutoCompleter(self.frame, "Source System", width=30)
         self.dest_ac = AutoCompleter(self.frame, "Destination System", width=30)
-        self.range_entry = PlaceHolderEntry(self.frame, "Range (LY)", width=10)
+        self.range_entry = PlaceHolder(self.frame, "Range (LY)", width=10)
         self.efficiency_slider = tk.Scale(self.frame, from_=1, to=100, orient=tk.HORIZONTAL, label="Efficiency (%)")
         self.efficiency_slider.set(60)
         self.plot_gui_btn = tk.Button(self.frame, text="Plot route", command=self.show_plot_gui)
