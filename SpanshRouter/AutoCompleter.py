@@ -5,23 +5,9 @@ import requests
 import traceback
 from time import sleep
 import sys
-
-try:
-    # Python 2
-    from Tkinter import *
-    import ttk
-    from .PlaceHolder import PlaceHolder
-except ModuleNotFoundError:
-    # Python 3
-    import tkinter as tk
-    from tkinter import *
-    from SpanshRouter.PlaceHolder import PlaceHolder
-    
-is_py2 = sys.version[0] == '2'
-if is_py2:
-    import Queue as queue
-else:
-    import queue 
+from tkinter import *
+from SpanshRouter.PlaceHolder import PlaceHolder
+import queue 
     
 
 class AutoCompleter(Entry, PlaceHolder):
@@ -88,7 +74,7 @@ class AutoCompleter(Entry, PlaceHolder):
     def select_all(self, event):
         event.widget.event_generate('<<SelectAll>>')
 
-    def changed(self, name, index, mode):
+    def changed(self, name=None, index=None, mode=None):
         self.set_default_style()
         value = self.var.get()
         if value.__len__() < 3 and self.lb_up or self.has_selected:
@@ -133,7 +119,7 @@ class AutoCompleter(Entry, PlaceHolder):
             if widget != "listbox":
                 self.lb.activate(index)
         else:
-            self.query_systems()
+            self.changed()
 
     def show_results(self, results):
         if results:

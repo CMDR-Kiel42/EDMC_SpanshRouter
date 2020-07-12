@@ -13,20 +13,20 @@ from monitor import monitor
 from . import AutoCompleter
 from . import PlaceHolderEntry
 from .updater import SpanshUpdater
+import tkinter as tk
+# from tkinter import *
+import tkinter.filedialog as filedialog
+import tkinter.messagebox as confirmDialog
 
-try:
-    # Python 2
-    from Tkinter import *
-    import Tkinter as tk
-    import tkFileDialog as filedialog
-    import tkMessageBox as confirmDialog
-    import ttk
-except ModuleNotFoundError:
-    # Python 3
-    import tkinter as tk
-    from tkinter import *
-    import tkinter.filedialog as filedialog
-    import tkinter.messagebox as confirmDialog
+# try:
+#     # Python 2
+#     from Tkinter import *
+#     import Tkinter as tk
+#     import tkFileDialog as filedialog
+#     import tkMessageBox as confirmDialog
+#     import ttk
+# except ModuleNotFoundError:
+#     # Python 3
 
 class SpanshRouter():
     def __init__(self, plugin_dir):

@@ -1,11 +1,5 @@
 from config import config
-try:
-    # Python 2
-    from Tkinter import END
-except ModuleNotFoundError:
-    # Python 3
-    import tkinter as tk
-    from tkinter import *
+from tkinter import END
 
 class PlaceHolder():
     def __init__(self, placeholder, **kw):

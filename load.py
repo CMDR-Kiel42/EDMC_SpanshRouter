@@ -1,19 +1,11 @@
 import sys
-is_py2 = sys.version[0] == '2'
-if is_py2:
-    from SpanshRouter import SpanshRouter
-    import tkMessageBox as confirmDialog
-else:
-    from SpanshRouter.SpanshRouter import SpanshRouter
-    import tkinter.messagebox as confirmDialog
+from SpanshRouter.SpanshRouter import SpanshRouter
+import tkinter.messagebox as confirmDialog
 
 spansh_router = None
 
 def plugin_start3(plugin_dir):
-    global spansh_router
-    spansh_router = SpanshRouter(plugin_dir)
-    spansh_router.check_for_update()
-    return 'spansh_router'
+    return plugin_start(plugin_dir)
 
 def plugin_start(plugin_dir):
     global spansh_router

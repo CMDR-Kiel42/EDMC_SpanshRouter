@@ -37,7 +37,7 @@ Fly dangerous! o7
 
 ## Updates
 
-When a new update is available, it will automatically be downloaded. You'll just have to restart EDMC to install it.
+When a new update is available, you will be prompted with a popup listing the last changes, and asking whether you wish to update or not. If you say yes, the update will be installed the next time you launch EDMC.
 
 ## Known Issues
 
