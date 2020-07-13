@@ -85,9 +85,11 @@ class AutoCompleter(PlaceHolder):
         if self.lb_up:
             self.has_selected = True
             index = self.lb.curselection()
+            self.var.trace_vdelete("w", self.var.traceid)
             self.var.set(self.lb.get(index))
             self.hide_list()
             self.icursor(END)
+            self.var.traceid = self.var.trace('w', self.changed)
 
     def up(self, widget):
         if self.lb_up:
