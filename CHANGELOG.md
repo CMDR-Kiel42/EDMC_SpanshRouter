@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 3.0.4
+
+- BE ADVISED: This version only works for EDMC 4.0.0.0 and above. Do not install if you're not currently running the latest EDMC version. This will be left as e pre-release for some time to let everyone update EDMC.
+- Dropped support for previous EDMC versions
+- Fixed bugs with the autocompleted fields in the "plot route" interface
+
 ## 3.0.3
 
 - Fixed "no previously saved route" message even though a saved route was present
