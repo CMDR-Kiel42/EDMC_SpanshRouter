@@ -66,7 +66,7 @@ class AutoCompleter(PlaceHolder):
         elif key in ['Return', 'Right']:
             if self.lb_up:
                 self.selection()
-        elif key == 'Escape' and self.lb_up:
+        elif key in ['Escape', 'Tab', 'ISO_Left_Tab'] and self.lb_up:
             self.hide_list()
     
     def select_all(self, event):
