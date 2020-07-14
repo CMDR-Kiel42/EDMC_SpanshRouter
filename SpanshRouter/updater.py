@@ -7,15 +7,23 @@ import json
 import tkinter as tk
 import tkinter.font as tkfont
 import tkinter.scrolledtext as ScrolledText
+import tkinter.messagebox as confirmDialog
+
 
 class SpanshUpdater():
-    def __init__(self, version, plugin_dir):
-        self.version = version
-        self.zip_name = "EDMC_SpanshRouter_" + version.replace('.', '') + ".zip"
+    def __init__(self, plugin_dir):
+        version_file = os.path.join(plugin_dir, "version.json")
+        with open(version_file, 'r') as version_fd:
+            self.plugin_version = version_fd.read()
+
+        self.zip_name = "EDMC_SpanshRouter_" + self.plugin_version.replace('.', '') + ".zip"
         self.plugin_dir = plugin_dir
         self.zip_path = os.path.join(self.plugin_dir, self.zip_name)
         self.zip_downloaded = False
         self.changelogs = self.get_changelog()
+        self.update_popup = UpdatePopup(self)
+        self.update_popup.withdraw()
+        self.update_available = False
 
     def download_zip(self):
         url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases/download/v' + self.version + '/' + self.zip_name
@@ -52,6 +60,21 @@ class SpanshUpdater():
         else:
             sys.stderr.write("Error when downloading the latest SpanshRouter update")
 
+    def cleanup_old_version(self):
+        try:
+            if (os.path.exists(os.path.join(self.plugin_dir, "AutoCompleter.py"))
+            and os.path.exists(os.path.join(self.plugin_dir, "SpanshRouter"))):
+                files_list = os.listdir(self.plugin_dir)
+
+                for filename in files_list:
+                    if (filename != "load.py"
+                    and (filename.endswith(".py") or filename.endswith(".pyc") or filename.endswith(".pyo"))):
+                        os.remove(os.path.join(self.plugin_dir, filename))
+        except:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                sys.stderr.write(''.join('!! ' + line for line in lines))
+
     def get_changelog(self):
         url = "https://api.github.com/repos/CMDR-Kiel42/EDMC_SpanshRouter/releases/latest"
         try:
@@ -68,9 +91,29 @@ class SpanshUpdater():
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             sys.stderr.write(''.join('!! ' + line for line in lines))
 
+    def ask_for_update(self):
+        self.update_popup.deiconify()
+
+    def check_for_update(self):
+        self.cleanup_old_version()
+        version_url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/version.json"
+        try:
+            response = requests.get(version_url, timeout=2)
+            if response.status_code == 200:
+                if self.plugin_version != response.text:
+                    self.update_available = True
+
+            else:
+                sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            sys.stderr.write(''.join('!! ' + line for line in lines))
+
 
 class UpdatePopup(tk.Toplevel):
-    def __init__(self, changelogs):
+    def __init__(self, sp_updater):
+        self.sp_updater = sp_updater
         super().__init__()
         width, height = 600, 280
         x = self.winfo_screenwidth()/2 - width/2
@@ -80,7 +123,7 @@ class UpdatePopup(tk.Toplevel):
         self.text_field = ScrolledText.ScrolledText(self, wrap="word", height=10)
         self.text_field.tag_configure("title", font=tkfont.Font(weight="bold", size=14), justify=tk.CENTER)
 
-        for line in changelogs.splitlines():
+        for line in sp_updater.changelogs.splitlines():
             if line.startswith("## "):
                 line = line.replace("## ", "SpanshRouter - Release ")
                 self.text_field.insert(tk.END, line + "\n", "title")
@@ -88,22 +131,20 @@ class UpdatePopup(tk.Toplevel):
                 self.text_field.insert(tk.END, line + "\n")
 
         self.skip_install_checkbox = tk.Checkbutton(self, text="Do not warn me about this version anymore")
-        self.install_button = tk.Button(self, text="Install")
-        self.cancel_button = tk.Button(self, text="Cancel")
+        self.install_button = tk.Button(self, text="Install", command=self.click_install)
+        self.cancel_button = tk.Button(self, text="Cancel", command=self.click_cancel)
             
         self.text_field.config(state=tk.DISABLED)
         self.text_field.grid(row=0, columnspan=2, sticky=tk.W+tk.E+tk.N+tk.S, padx=10, pady=15)
         self.skip_install_checkbox.grid(row=1, columnspan=2, sticky=tk.W+tk.E+tk.N+tk.S)
         self.install_button.grid(row=2, column=0, pady=15)
         self.cancel_button.grid(row=2, column=1)
-            
 
-
-if __name__ == "__main__":
-    print("Testing")
-    sp_updater = SpanshUpdater("3.0.3", ".")
-    root = tk.Tk()
-    root.geometry("200x300") 
-    root.title("main")
-    popup = UpdatePopup(sp_updater.changelogs)
-    popup.mainloop()
+    def click_install(self):
+        self.sp_updater.update_available = True
+        self.destroy()
+        confirmDialog.showinfo("SpanshRouter", "The update will be installed as soon as you quit EDMC.")
+    
+    def click_cancel(self):
+        self.sp_updater.update_available = False
+        self.destroy()

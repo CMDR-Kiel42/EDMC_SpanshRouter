@@ -19,10 +19,6 @@ import tkinter.messagebox as confirmDialog
 
 class SpanshRouter():
     def __init__(self, plugin_dir):
-        version_file = os.path.join(plugin_dir, "version.json")
-        with open(version_file, 'r') as version_fd:
-            self.plugin_version = version_fd.read()
-
         self.update_available = False
         self.next_stop = "No route planned"
         self.route = []
@@ -301,11 +297,6 @@ class SpanshRouter():
             self.copy_waypoint()
         self.save_offset()
 
-    def goto_changelog_page(self):
-        changelog_url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/blob/master/CHANGELOG.md#'
-        changelog_url += self.spansh_updater.version.replace('.', '')
-        webbrowser.open(changelog_url)
-
     def plot_file(self):
         ftypes = [
             ('All supported files', '*.csv *.txt'),
@@ -530,38 +521,3 @@ class SpanshRouter():
             except ValueError:
                 self.show_error("Invalid range")
                 self.range_entry.set_error_style()
-
-    def cleanup_old_version(self):
-        try:
-            if (os.path.exists(os.path.join(self.plugin_dir, "AutoCompleter.py"))
-            and os.path.exists(os.path.join(self.plugin_dir, "SpanshRouter"))):
-                files_list = os.listdir(self.plugin_dir)
-
-                for filename in files_list:
-                    if (filename != "load.py"
-                    and (filename.endswith(".py") or filename.endswith(".pyc") or filename.endswith(".pyo"))):
-                        os.remove(os.path.join(self.plugin_dir, filename))
-        except:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                sys.stderr.write(''.join('!! ' + line for line in lines))
-
-    def check_for_update(self):
-        self.cleanup_old_version()
-        version_url = "https://raw.githubusercontent.com/CMDR-Kiel42/EDMC_SpanshRouter/master/version.json"
-        try:
-            response = requests.get(version_url, timeout=2)
-            if response.status_code == 200:
-                if self.plugin_version != response.text:
-                    self.update_available = True
-                    self.spansh_updater = SpanshUpdater(response.text, self.plugin_dir)
-
-            else:
-                sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
-        except:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            sys.stderr.write(''.join('!! ' + line for line in lines))
-
-    def install_update(self):
-        self.spansh_updater.install()
