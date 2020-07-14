@@ -16,6 +16,7 @@ class SpanshUpdater():
         with open(version_file, 'r') as version_fd:
             self.plugin_version = version_fd.read()
 
+        self.latest_version = self.plugin_version
         self.zip_name = "EDMC_SpanshRouter_" + self.plugin_version.replace('.', '') + ".zip"
         self.plugin_dir = plugin_dir
         self.zip_path = os.path.join(self.plugin_dir, self.zip_name)
@@ -26,7 +27,7 @@ class SpanshUpdater():
         self.update_available = False
 
     def download_zip(self):
-        url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases/download/v' + self.version + '/' + self.zip_name
+        url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases/download/v' + self.latest_version + '/' + self.zip_name
 
         try:
             r = requests.get(url)
@@ -102,6 +103,7 @@ class SpanshUpdater():
             if response.status_code == 200:
                 if self.plugin_version != response.text:
                     self.update_available = True
+                    self.latest_version = response.text
 
             else:
                 sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
