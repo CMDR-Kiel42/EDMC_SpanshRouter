@@ -17,7 +17,7 @@ class SpanshUpdater():
             self.plugin_version = version_fd.read()
 
         self.latest_version = self.plugin_version
-        self.zip_name = "EDMC_SpanshRouter_" + self.plugin_version.replace('.', '') + ".zip"
+        self.zip_name = "EDMC_SpanshRouter_VERSION.zip"
         self.plugin_dir = plugin_dir
         self.zip_path = os.path.join(self.plugin_dir, self.zip_name)
         self.zip_downloaded = False
@@ -37,7 +37,8 @@ class SpanshUpdater():
                     f.write(os.path.join(r.content))
                 self.zip_downloaded = True
             else:
-                sys.stderr.write("Failed to fetch SpanchRouter update. Status code: " + str(r.status_code))
+                sys.stderr.write("Failed to fetch SpanshRouter update. Status code: " + str(r.status_code))
+                sys.stderr.write("Download URL: " + url)
                 self.zip_downloaded = False
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -104,6 +105,7 @@ class SpanshUpdater():
                 if self.plugin_version != response.text:
                     self.update_available = True
                     self.latest_version = response.text
+                    self.zip_name = self.zip_name.replace("VERSION", self.latest_version)
 
             else:
                 sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
