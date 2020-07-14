@@ -4,6 +4,9 @@ import zipfile
 import sys
 import traceback
 import json
+import tkinter as tk
+import tkinter.font as tkfont
+import tkinter.scrolledtext as ScrolledText
 
 class SpanshUpdater():
     def __init__(self, version, plugin_dir):
@@ -64,3 +67,43 @@ class SpanshUpdater():
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             sys.stderr.write(''.join('!! ' + line for line in lines))
+
+
+class UpdatePopup(tk.Toplevel):
+    def __init__(self, changelogs):
+        super().__init__()
+        width, height = 600, 280
+        x = self.winfo_screenwidth()/2 - width/2
+        y = self.winfo_screenheight()/2 - height/2
+        self.geometry("%dx%d+%d+%d" % (width, height, x, y))
+        self.title("SpanshRouter - Update available")
+        self.text_field = ScrolledText.ScrolledText(self, wrap="word", height=10)
+        self.text_field.tag_configure("title", font=tkfont.Font(weight="bold", size=14), justify=tk.CENTER)
+
+        for line in changelogs.splitlines():
+            if line.startswith("## "):
+                line = line.replace("## ", "SpanshRouter - Release ")
+                self.text_field.insert(tk.END, line + "\n", "title")
+            else:
+                self.text_field.insert(tk.END, line + "\n")
+
+        self.skip_install_checkbox = tk.Checkbutton(self, text="Do not warn me about this version anymore")
+        self.install_button = tk.Button(self, text="Install")
+        self.cancel_button = tk.Button(self, text="Cancel")
+            
+        self.text_field.config(state=tk.DISABLED)
+        self.text_field.grid(row=0, columnspan=2, sticky=tk.W+tk.E+tk.N+tk.S, padx=10, pady=15)
+        self.skip_install_checkbox.grid(row=1, columnspan=2, sticky=tk.W+tk.E+tk.N+tk.S)
+        self.install_button.grid(row=2, column=0, pady=15)
+        self.cancel_button.grid(row=2, column=1)
+            
+
+
+if __name__ == "__main__":
+    print("Testing")
+    sp_updater = SpanshUpdater("3.0.3", ".")
+    root = tk.Tk()
+    root.geometry("200x300") 
+    root.title("main")
+    popup = UpdatePopup(sp_updater.changelogs)
+    popup.mainloop()
