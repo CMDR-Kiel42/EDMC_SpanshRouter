@@ -19,7 +19,7 @@ class SpanshUpdater():
         self.latest_version = self.plugin_version
         self.zip_name = "EDMC_SpanshRouter_VERSION.zip"
         self.plugin_dir = plugin_dir
-        self.zip_path = os.path.join(self.plugin_dir, self.zip_name)
+        self.zip_path = None
         self.zip_downloaded = False
         self.changelogs = self.get_changelog()
         self.update_popup = UpdatePopup(self)
@@ -106,6 +106,7 @@ class SpanshUpdater():
                     self.update_available = True
                     self.latest_version = response.text
                     self.zip_name = self.zip_name.replace("VERSION", self.latest_version.replace('.', ''))
+                    self.zip_path = os.path.join(self.plugin_dir, self.zip_name)
 
             else:
                 sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
