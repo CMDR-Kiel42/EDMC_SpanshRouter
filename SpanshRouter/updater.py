@@ -38,7 +38,7 @@ class SpanshUpdater():
                 self.zip_downloaded = True
             else:
                 sys.stderr.write("Failed to fetch SpanshRouter update. Status code: " + str(r.status_code) + '\n')
-                sys.stderr.write("Download URL: " + url)
+                sys.stderr.write("Download URL: " + url + '\n')
                 self.zip_downloaded = False
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -105,7 +105,7 @@ class SpanshUpdater():
                 if self.plugin_version != response.text:
                     self.update_available = True
                     self.latest_version = response.text
-                    self.zip_name = self.zip_name.replace("VERSION", self.latest_version.translate(None, "."))
+                    self.zip_name = self.zip_name.replace("VERSION", self.latest_version.replace('.', ''))
 
             else:
                 sys.stderr.write("Could not query latest SpanshRouter version: " + str(response.status_code) + response.text)
