@@ -30,10 +30,11 @@ class SpanshUpdater():
         url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases/download/v' + self.latest_version + '/' + self.zip_name
 
         try:
+            print("Downloading SpanshRouter to " + self.zip_path)
             r = requests.get(url)
             if r.status_code == 200:
+                print("Download successful.")
                 with open(self.zip_path, 'wb') as f:
-                    print("Downloading SpanshRouter to " + self.zip_path)
                     f.write(os.path.join(r.content))
                 self.zip_downloaded = True
             else:
@@ -55,6 +56,7 @@ class SpanshUpdater():
                     zip_ref.extractall(self.plugin_dir)
 
                 os.remove(self.zip_path)
+                print("Successfully installed SpanshRouter version " + self.latest_version)
             except:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
