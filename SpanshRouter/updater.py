@@ -97,6 +97,7 @@ class SpanshUpdater():
 
     def ask_for_update(self):
         self.update_popup.deiconify()
+        self.update_popup.lift()
 
     def check_for_update(self):
         self.cleanup_old_version()
@@ -126,6 +127,7 @@ class UpdatePopup(tk.Toplevel):
         x = self.winfo_screenwidth()/2 - width/2
         y = self.winfo_screenheight()/2 - height/2
         self.geometry("%dx%d+%d+%d" % (width, height, x, y))
+        self.attributes("-topmost", True)
         self.title("SpanshRouter - Update available")
         self.text_field = ScrolledText.ScrolledText(self, wrap="word", height=10)
         self.text_field.tag_configure("title", font=tkfont.Font(weight="bold", size=14), justify=tk.CENTER)
