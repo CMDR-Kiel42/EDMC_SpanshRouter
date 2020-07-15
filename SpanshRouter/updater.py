@@ -107,7 +107,13 @@ class SpanshUpdater():
         try:
             response = requests.get(version_url, timeout=2)
             if response.status_code == 200:
-                if self.plugin_version != response.text:
+                skip_version = ''
+                try:
+                    with open(self.savestate_filepath, 'r') as savestate_fh:
+                        skip_version = json.load(savestate_fh)["SkipVersion"]
+                except FileNotFoundError:
+                    pass
+                if self.plugin_version != response.text and not skip_version == response.text:
                     self.update_available = True
                     self.latest_version = response.text
                     self.zip_name = self.zip_name.replace("VERSION", self.latest_version.replace('.', ''))
@@ -124,13 +130,17 @@ class SpanshUpdater():
         file_content = {}
         try:
             with open(self.savestate_filepath, 'r') as savestate_fh:
-                file_content = json.loads(savestate_fh)
-        except:
+                file_content = json.load(savestate_fh)
+        except FileNotFoundError:
             pass
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            sys.stderr.write(''.join('!! ' + line for line in lines))
         finally:
-            file_content["SkipUpdate"] = self.latest_version
+            file_content["SkipVersion"] = self.latest_version
             with open(self.savestate_filepath, 'w') as savestate_fh:
-                savestate_fh.write(json.dumps(file_content))
+                json.dump(file_content, savestate_fh)
 
 
 class UpdatePopup(tk.Toplevel):
