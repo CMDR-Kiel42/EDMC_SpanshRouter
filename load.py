@@ -22,6 +22,8 @@ def plugin_stop():
 
     if sp_updater.update_available:
         sp_updater.install()
+    elif sp_updater.skip_update.get():
+        sp_updater.save_skip_update()
 
 def journal_entry(cmdr, is_beta, system, station, entry, state):
     global spansh_router

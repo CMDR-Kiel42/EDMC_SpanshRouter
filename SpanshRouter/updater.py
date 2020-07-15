@@ -25,6 +25,8 @@ class SpanshUpdater():
         self.update_popup = UpdatePopup(self)
         self.update_popup.withdraw()
         self.update_available = False
+        self.skip_update = tk.BooleanVar(False)
+        self.savestate_filepath = os.path.join(plugin_dir, 'savestate')
 
     def download_zip(self):
         url = 'https://github.com/CMDR-Kiel42/EDMC_SpanshRouter/releases/download/v' + self.latest_version + '/' + self.zip_name
@@ -118,6 +120,18 @@ class SpanshUpdater():
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
             sys.stderr.write(''.join('!! ' + line for line in lines))
 
+    def save_skip_update(self):
+        file_content = {}
+        try:
+            with open(self.savestate_filepath, 'r') as savestate_fh:
+                file_content = json.loads(savestate_fh)
+        except:
+            pass
+        finally:
+            file_content["SkipUpdate"] = self.latest_version
+            with open(self.savestate_filepath, 'w') as savestate_fh:
+                savestate_fh.write(json.dumps(file_content))
+
 
 class UpdatePopup(tk.Toplevel):
     def __init__(self, sp_updater):
@@ -129,8 +143,10 @@ class UpdatePopup(tk.Toplevel):
         self.geometry("%dx%d+%d+%d" % (width, height, x, y))
         self.attributes("-topmost", True)
         self.title("SpanshRouter - Update available")
+        self.protocol("WM_DELETE_WINDOW", self.click_cancel)
         self.text_field = ScrolledText.ScrolledText(self, wrap="word", height=10)
         self.text_field.tag_configure("title", font=tkfont.Font(weight="bold", size=14), justify=tk.CENTER)
+        self.skip_install_var = tk.BooleanVar()
 
         for line in sp_updater.changelogs.splitlines():
             if line.startswith("## "):
@@ -139,7 +155,7 @@ class UpdatePopup(tk.Toplevel):
             else:
                 self.text_field.insert(tk.END, line + "\n")
 
-        self.skip_install_checkbox = tk.Checkbutton(self, text="Do not warn me about this version anymore")
+        self.skip_install_checkbox = tk.Checkbutton(self, text="Do not warn me about this version anymore", variable=self.skip_install_var, selectcolor="black")
         self.install_button = tk.Button(self, text="Install", command=self.click_install)
         self.cancel_button = tk.Button(self, text="Cancel", command=self.click_cancel)
             
@@ -156,4 +172,5 @@ class UpdatePopup(tk.Toplevel):
     
     def click_cancel(self):
         self.sp_updater.update_available = False
+        self.sp_updater.skip_update = self.skip_install_var
         self.destroy()
