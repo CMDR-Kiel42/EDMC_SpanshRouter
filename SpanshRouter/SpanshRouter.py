@@ -120,7 +120,8 @@ class SpanshRouter():
             self.plot_gui_btn.grid_remove()
             self.csv_route_btn.grid_remove()
             self.source_ac.grid()
-            self.source_ac.set_text(monitor.system if monitor.system is not None else "Source System")
+            # Prefill the "Source" entry with the current system
+            self.source_ac.set_text(monitor.system if monitor.system is not None else "Source System", monitor.system is None)
             self.dest_ac.grid()
             self.range_entry.grid()
             self.efficiency_slider.grid()
