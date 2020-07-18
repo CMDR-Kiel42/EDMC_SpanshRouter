@@ -362,6 +362,10 @@ class SpanshRouter():
             dest = self.dest_ac.get().strip()
             efficiency = self.efficiency_slider.get()
 
+            # Hide autocomplete lists in case they're still shown
+            self.source_ac.ac_foc_out()
+            self.dest_ac.ac_foc_out()
+
             if (    source  and source != self.source_ac.placeholder and
                     dest    and dest != self.dest_ac.placeholder    ):
 

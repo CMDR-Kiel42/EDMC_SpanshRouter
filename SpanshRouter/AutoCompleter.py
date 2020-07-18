@@ -39,10 +39,10 @@ class AutoCompleter(PlaceHolder):
 
         self.update_me()
 
-    def ac_foc_out(self, event):
+    def ac_foc_out(self, event=None):
         x,y = self.parent.winfo_pointerxy()
         widget_under_cursor = self.parent.winfo_containing(x,y)
-        if widget_under_cursor != self.lb and widget_under_cursor != self:
+        if (widget_under_cursor != self.lb and widget_under_cursor != self) or event is None:
             self.foc_out()
             self.hide_list()
     
