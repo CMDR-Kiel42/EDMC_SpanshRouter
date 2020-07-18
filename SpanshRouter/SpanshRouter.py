@@ -134,7 +134,9 @@ class SpanshRouter():
                 self.source_ac.put_placeholder()
             if len(self.dest_ac.var.get()) == 0:
                 self.dest_ac.put_placeholder()
+            self.source_ac.ac_foc_out()
             self.source_ac.grid_remove()
+            self.dest_ac.ac_foc_out()
             self.dest_ac.grid_remove()
             self.range_entry.grid_remove()
             self.efficiency_slider.grid_remove()
