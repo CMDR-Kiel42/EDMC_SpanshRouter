@@ -50,11 +50,11 @@ class AutoCompleter(PlaceHolder):
         self.foc_in()
         w = e.widget
         self.menu.entryconfigure("Cut",
-        command=lambda: w.event_generate("<<Cut>>"))
+            command=lambda: w.event_generate("<<Cut>>"))
         self.menu.entryconfigure("Copy",
-        command=lambda: w.event_generate("<<Copy>>"))
+            command=lambda: w.event_generate("<<Copy>>"))
         self.menu.entryconfigure("Paste",
-        command=lambda: w.event_generate("<<Paste>>"))
+            command=lambda: w.event_generate("<<Paste>>"))
         self.menu.tk.call("tk_popup", self.menu, e.x_root, e.y_root)
 
     def keypressed(self, event):
@@ -133,7 +133,7 @@ class AutoCompleter(PlaceHolder):
 
     def show_list(self, height):
         self.lb["height"] = height
-        if not self.lb_up:
+        if not self.lb_up and self.parent.focus_get() is self:
             info = self.grid_info()
             if info:
                 self.lb.grid(row=int(info["row"])+1, columnspan=2)
