@@ -22,7 +22,8 @@ def plugin_stop():
 
 def journal_entry(cmdr, is_beta, system, station, entry, state):
     global spansh_router
-    if (entry['event'] in ['FSDJump', 'Location', 'SupercruiseEntry', 'SupercruiseExit']) and entry["StarSystem"] == spansh_router.next_stop:
+    if (    entry['event'] in ['FSDJump', 'Location', 'SupercruiseEntry', 'SupercruiseExit'] 
+            and entry["StarSystem"].lower() == spansh_router.next_stop.lower()):
         spansh_router.update_route()
         spansh_router.set_source_ac(entry["StarSystem"])
     elif entry['event'] == 'FSSDiscoveryScan' and entry['SystemName'] == spansh_router.next_stop:
