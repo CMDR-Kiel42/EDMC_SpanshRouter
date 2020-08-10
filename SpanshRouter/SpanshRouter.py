@@ -350,6 +350,9 @@ class SpanshRouter():
             if clear_previous_route:
                 self.clear_route(False)
             for row in route_reader:
+                # Skip adjacent duplicates for the Road to Riches CSVs
+                if self.route.__len__() > 0 and row[self.system_header] == self.route[-1][0]:
+                    continue
                 if row not in (None, "", []):
                     self.route.append([
                         row[self.system_header],
