@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## 3.1.0
 
-- BE ADVISED: This version only works for EDMC 4.0.0.0 and above. Do not install if you're not currently running the latest EDMC version. This will 
+- BE ADVISED: This version only works for EDMC 4.0.0.0 and above. Do not install if you're not currently running the latest EDMC version.
 - Fixed a bug with csv file containing system names in uppercase
 - Fixed a bug where the suggestions list would linger on the main screen
 
