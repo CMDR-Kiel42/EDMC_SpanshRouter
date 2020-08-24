@@ -229,7 +229,7 @@ class SpanshRouter():
     def open_last_route(self):
         try:
             has_headers = False
-            with open(self.save_route_path, 'r') as csvfile:
+            with open(self.save_route_path, 'r', newline='') as csvfile:
                 # Check if the file has a header for compatibility with previous versions
                 dict_route_reader = csv.DictReader(csvfile)
                 if dict_route_reader.fieldnames[0] == self.system_header:
@@ -238,7 +238,7 @@ class SpanshRouter():
             if has_headers:
                 self.plot_csv(self.save_route_path, clear_previous_route=False)
             else:
-                with open(self.save_route_path, 'r') as csvfile:
+                with open(self.save_route_path, 'r', newline='') as csvfile:
                     route_reader = csv.reader(csvfile)
 
                     for row in route_reader:
@@ -344,7 +344,7 @@ class SpanshRouter():
                 self.show_error("An error occured while reading the file.")
 
     def plot_csv(self, filename, clear_previous_route=True):
-        with io.open(filename, 'r', encoding='utf-8-sig') as csvfile:
+        with io.open(filename, 'r', encoding='utf-8-sig', newline='') as csvfile:
             route_reader = csv.DictReader(csvfile)
 
             if clear_previous_route:
@@ -358,7 +358,7 @@ class SpanshRouter():
                         row[self.system_header],
                         row.get(self.jumps_header, "") # Jumps column is optional
                     ])
-                    if row.get(self.jumps_header) != None:
+                    if row.get(self.jumps_header): # Jumps column is optional
                         self.jumps_left += int(row[self.jumps_header])
 
     def plot_route(self):
@@ -509,7 +509,7 @@ class SpanshRouter():
 
     def save_route(self):
         if self.route.__len__() != 0:
-            with open(self.save_route_path, 'w') as csvfile:
+            with open(self.save_route_path, 'w', newline='') as csvfile:
                 fieldnames = [self.system_header, self.jumps_header]
                 writer = csv.writer(csvfile)
                 writer.writerow(fieldnames)
