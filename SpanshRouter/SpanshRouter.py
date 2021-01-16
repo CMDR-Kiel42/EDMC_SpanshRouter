@@ -43,6 +43,7 @@ class SpanshRouter():
         self.parent = None
         self.plugin_dir = plugin_dir
         self.save_route_path = os.path.join(plugin_dir, 'route.csv')
+        self.export_route_path = os.path.join(plugin_dir, 'Export for TCE.exp')
         self.offset_file_path = os.path.join(plugin_dir, 'offset')
         self.offset = 0
         self.jumps_left = 0
@@ -75,6 +76,7 @@ class SpanshRouter():
         self.cancel_plot = tk.Button(self.frame, text="Cancel", command=lambda: self.show_plot_gui(False))
 
         self.csv_route_btn = tk.Button(self.frame, text="Import file", command=self.plot_file)
+        self.export_route_btn = tk.Button(self.frame, text="Export for TCE", command=self.export_route)
         self.clear_route_btn = tk.Button(self.frame, text="Clear route", command=self.clear_route)
 
         row = 0
@@ -97,7 +99,8 @@ class SpanshRouter():
         self.plot_gui_btn.grid(row=row, column=1, pady=10, padx=5, sticky=tk.W)
         self.cancel_plot.grid(row=row, column=1, pady=10, padx=5, sticky=tk.E)
         row += 1
-        self.clear_route_btn.grid(row=row,column=1)
+        self.export_route_btn.grid(row=row, pady=10, padx=0)
+        self.clear_route_btn.grid(row=row, column=1, pady=10, padx=5, sticky=tk.W)
         row += 1
         self.jumpcounttxt_lbl.grid(row=row, pady=5, sticky=tk.W)
         row += 1
@@ -115,6 +118,7 @@ class SpanshRouter():
             self.waypoint_btn.grid_remove()
             self.waypoint_next_btn.grid_remove()
             self.jumpcounttxt_lbl.grid_remove()
+            self.export_route_btn.grid_remove()
             self.clear_route_btn.grid_remove()
 
         self.update_gui()
@@ -127,6 +131,7 @@ class SpanshRouter():
             self.waypoint_btn.grid_remove()
             self.waypoint_next_btn.grid_remove()
             self.jumpcounttxt_lbl.grid_remove()
+            self.export_route_btn.grid_remove()
             self.clear_route_btn.grid_remove()
 
             self.plot_gui_btn.grid_remove()
@@ -172,6 +177,7 @@ class SpanshRouter():
             self.waypoint_btn.grid_remove()
             self.waypoint_next_btn.grid_remove()
             self.jumpcounttxt_lbl.grid_remove()
+            self.export_route_btn.grid_remove()
             self.clear_route_btn.grid_remove()
         else:
             self.waypoint_btn["text"] = self.next_wp_label + self.next_stop
@@ -195,6 +201,7 @@ class SpanshRouter():
                 else:
                     self.waypoint_next_btn.config(state=tk.NORMAL)
 
+            self.export_route_btn.grid()
             self.clear_route_btn.grid()
 
     def update_gui(self):
@@ -495,6 +502,22 @@ class SpanshRouter():
             sys.stderr.write(''.join('!! ' + line for line in lines))
             self.enable_plot_gui(True)
             self.show_error("An error occured while reading the file.")
+
+    def export_route(self):
+        if self.route.__len__() != 0:
+            route_start = self.route[0][0]
+            route_end = self.route[-1][0]
+            route_name = f"{route_start} to {route_end}"
+            self.export_route_path = os.path.join(self.plugin_dir, f"{route_name}.exp")
+
+            with open(self.export_route_path, 'w') as csvfile:
+                for row in self.route:
+                    csvfile.write(f"{route_name},{row[0]}\n")
+        else:
+            try:
+                os.remove(self.save_route_path)
+            except:
+                print("No route to export")
 
     def clear_route(self, show_dialog=True):
         clear = confirmDialog.askyesno("SpanshRouter","Are you sure you want to clear the current route?") if show_dialog else True
