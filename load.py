@@ -11,7 +11,7 @@ def plugin_start(plugin_dir):
     global spansh_router
     spansh_router = SpanshRouter(plugin_dir)
     spansh_router.check_for_update()
-    return 'spansh_router'
+    return 'SpanshRouter'
 
 def plugin_stop():
     global spansh_router
