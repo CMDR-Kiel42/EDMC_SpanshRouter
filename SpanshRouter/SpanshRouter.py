@@ -27,11 +27,13 @@ class SpanshRouter():
 
         self.update_available = False
         self.roadtoriches = False
+        self.fleetcarrier = False
         self.next_stop = "No route planned"
         self.route = []
         self.next_wp_label = "Next waypoint: "
         self.jumpcountlbl_txt = "Estimated jumps left: "
         self.bodieslbl_txt = "Bodies to scan at: "
+        self.fleetstocklbl_txt = "Time to restock Tritium"
         self.bodies = ""
         self.parent = None
         self.plugin_dir = plugin_dir
@@ -46,6 +48,7 @@ class SpanshRouter():
         self.bodyname_header = "Body Name"
         self.bodysubtype_header = "Body Subtype"
         self.jumps_header = "Jumps"
+        self.restocktritium_header = "Restock Tritium"
 
     #   -- GUI part --
     def init_gui(self, parent):
@@ -59,6 +62,7 @@ class SpanshRouter():
         self.waypoint_next_btn = tk.Button(self.frame, text="v", command=self.goto_next_waypoint)
         self.jumpcounttxt_lbl = tk.Label(self.frame, text=self.jumpcountlbl_txt + str(self.jumps_left))
         self.bodies_lbl = tk.Label(self.frame, justify=LEFT, text=self.bodieslbl_txt + self.bodies)
+        self.fleetrestock_lbl = tk.Label(self.frame, justify=LEFT, text=self.fleetstocklbl_txt)
         self.error_lbl = tk.Label(self.frame, textvariable=self.error_txt)
 
         # Plotting GUI
@@ -83,6 +87,8 @@ class SpanshRouter():
         self.waypoint_next_btn.grid(row=row, columnspan=2)
         row += 1
         self.bodies_lbl.grid(row=row, columnspan=2, sticky=tk.W)
+        row += 1
+        self.fleetrestock_lbl.grid(row=row, columnspan=2, sticky=tk.W)
         row += 1
         self.source_ac.grid(row=row,columnspan=2, pady=(10,0)) # The AutoCompleter takes two rows to show the list when needed, so we skip one
         row += 2
@@ -117,6 +123,7 @@ class SpanshRouter():
             self.waypoint_next_btn.grid_remove()
             self.jumpcounttxt_lbl.grid_remove()
             self.bodies_lbl.grid_remove()
+            self.fleetrestock_lbl.grid_remove()
             self.export_route_btn.grid_remove()
             self.clear_route_btn.grid_remove()
 
@@ -131,6 +138,7 @@ class SpanshRouter():
             self.waypoint_next_btn.grid_remove()
             self.jumpcounttxt_lbl.grid_remove()
             self.bodies_lbl.grid_remove()
+            self.fleetrestock_lbl.grid_remove()
             self.export_route_btn.grid_remove()
             self.clear_route_btn.grid_remove()
 
@@ -178,6 +186,7 @@ class SpanshRouter():
             self.waypoint_next_btn.grid_remove()
             self.jumpcounttxt_lbl.grid_remove()
             self.bodies_lbl.grid_remove()
+            self.fleetrestock_lbl.grid_remove()
             self.export_route_btn.grid_remove()
             self.clear_route_btn.grid_remove()
         else:
@@ -193,7 +202,15 @@ class SpanshRouter():
                 self.bodies_lbl.grid()
             else:
                 self.bodies_lbl.grid_remove()
-    
+
+            self.fleetrestock_lbl.grid_remove()
+            if self.fleetcarrier:
+                if self.offset > 0:
+                    restock = self.route[self.offset - 1][2]
+                    if restock.lower() == "yes":
+                        self.fleetrestock_lbl["text"] = f"At: {self.route[self.offset - 1][0]}\n   {self.fleetstocklbl_txt}" 
+                        self.fleetrestock_lbl.grid()
+
             self.waypoint_prev_btn.grid()
             self.waypoint_btn.grid()
             self.waypoint_next_btn.grid()
@@ -376,6 +393,8 @@ class SpanshRouter():
     def plot_csv(self, filename, clear_previous_route=True):
        with io.open(filename, 'r', encoding='utf-8-sig', newline='') as csvfile:
             self.roadtoriches = False
+            self.fleetcarrier = False
+        
             if clear_previous_route:
                 self.clear_route(False)
             
@@ -388,10 +407,12 @@ class SpanshRouter():
             internalbasicheader1 = "System Name"
             internalbasicheader2 = "System Name,Jumps"
             internalrichesheader = "System Name,Jumps,Body Name,Body Subtype"
+            internalfleetcarrierheader = "System Name,Jumps,Restock Tritium"
             # Define the differnt import file formats based on the CSV header row
             neutronimportheader = "System Name,Distance To Arrival,Distance Remaining,Neutron Star,Jumps"
             road2richesimportheader = "System Name,Body Name,Body Subtype,Is Terraformable,Distance To Arrival,Estimated Scan Value,Estimated Mapping Value,Jumps"
-            
+            fleetcarrierimportheader = "System Name,Distance,Distance Remaining,Fuel Used,Icy Ring,Pristine,Restock Tritium"
+
             if (headerline == internalbasicheader1) or (headerline == internalbasicheader2) or (headerline == neutronimportheader):
                 for row in route_reader:
                     if row not in (None, "", []):
@@ -416,6 +437,18 @@ class SpanshRouter():
                             row[self.jumps_header],
                             bodynames,
                             bodysubtypes
+                        ])
+                        self.jumps_left += int(row[self.jumps_header])
+
+            elif headerline == internalfleetcarrierheader:
+                self.fleetcarrier = True
+
+                for row in route_reader:
+                    if row not in (None, "", []):
+                        self.route.append([
+                            row[self.system_header],
+                            row[self.jumps_header],
+                            row[self.restocktritium_header]
                         ])
                         self.jumps_left += int(row[self.jumps_header])
 
@@ -450,6 +483,18 @@ class SpanshRouter():
                         bodysubtypes.clear()
 
                         self.jumps_left += int(row[self.jumps_header])
+
+            elif headerline == fleetcarrierimportheader:
+                self.fleetcarrier = True
+
+                for row in route_reader:
+                    if row not in (None, "", []):
+                        self.route.append([
+                            row[self.system_header],
+                            1, # Jumps is faked as every row is 1 jump
+                            row[self.restocktritium_header]
+                        ])
+                        self.jumps_left += 1 # Jumps is faked as every row is 1 jump
 
             else:
                 self.show_error("Could not detect file format")
@@ -602,6 +647,7 @@ class SpanshRouter():
             self.next_waypoint = ""
             self.jumps_left = 0
             self.roadtoriches = False
+            self.fleetcarrier = False
             try:
                 os.remove(self.save_route_path)
             except:
@@ -620,19 +666,28 @@ class SpanshRouter():
     def save_route(self):
         if self.route.__len__() != 0:
             with open(self.save_route_path, 'w', newline='') as csvfile:
-                if not self.roadtoriches:
-                    # Write output: System, Jumps
-                    fieldnames = [self.system_header, self.jumps_header]
-                    writer = csv.writer(csvfile)
-                    writer.writerow(fieldnames)
-                    writer.writerows(self.route)
-                else:
+                if self.roadtoriches:
                     # Write output: System, Jumps, Bodies[], BodySubTypes[]
                     fieldnames = [self.system_header, self.jumps_header, self.bodyname_header, self.bodysubtype_header]
                     writer = csv.writer(csvfile)
                     writer.writerow(fieldnames)
                     for row in self.route:
                         writer.writerow(row)
+
+                if self.fleetcarrier:
+                    # Write output: System, Jumps, 
+                    fieldnames = [self.system_header, self.jumps_header, self.restocktritium_header]
+                    writer = csv.writer(csvfile)
+                    writer.writerow(fieldnames)
+                    for row in self.route:
+                        writer.writerow(row)
+
+                else:
+                    # Write output: System, Jumps
+                    fieldnames = [self.system_header, self.jumps_header]
+                    writer = csv.writer(csvfile)
+                    writer.writerow(fieldnames)
+                    writer.writerows(self.route)
         else:
             try:
                 os.remove(self.save_route_path)
