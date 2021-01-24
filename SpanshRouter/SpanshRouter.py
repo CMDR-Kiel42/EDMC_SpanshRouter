@@ -19,6 +19,18 @@ import tkinter.filedialog as filedialog
 import tkinter.messagebox as confirmDialog
 from tkinter import *
 
+import logging
+from config import appname
+
+# This could also be returned from plugin_start3()
+plugin_name = os.path.basename(os.path.dirname(__file__))
+
+# A Logger is used per 'found' plugin to make it easy to include the plugin's
+# folder name in the logging output format.
+# NB: plugin_name here *must* be the plugin's folder name as per the preceding
+#     code, else the logger won't be properly set up.
+logger = logging.getLogger(f'{appname}.{plugin_name}')
+
 class SpanshRouter():
     def __init__(self, plugin_dir):
         version_file = os.path.join(plugin_dir, "version.json")
@@ -623,20 +635,29 @@ class SpanshRouter():
             self.show_error("An error occured while reading the file.")
 
     def export_route(self):
-        if self.route.__len__() != 0:
-            route_start = self.route[0][0]
-            route_end = self.route[-1][0]
-            route_name = f"{route_start} to {route_end}"
-            self.export_route_path = os.path.join(self.plugin_dir, f"{route_name}.exp")
+        if self.route.__len__() == 0:
+            #logger.info("No route to export")
+            print("No route to export")
+            return
 
-            with open(self.export_route_path, 'w') as csvfile:
-                for row in self.route:
-                    csvfile.write(f"{route_name},{row[0]}\n")
-        else:
+        route_start = self.route[0][0]
+        route_end = self.route[-1][0]
+        route_name = f"{route_start} to {route_end}"
+        #logger.info(f"Route name: {route_name}")
+
+        ftypes = [('TCE Flight Plan files', '*.exp')]
+        filename = filedialog.asksaveasfilename(filetypes = ftypes, initialdir=os.path.expanduser('~'), initialfile=f"{route_name}.exp")
+
+        if filename.__len__() > 0:
             try:
-                os.remove(self.save_route_path)
+                with open(filename, 'w') as csvfile:
+                    for row in self.route:
+                        csvfile.write(f"{route_name},{row[0]}\n")
             except:
-                print("No route to export")
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                #logger.error(''.join('!! ' + line for line in lines))
+                self.show_error("An error occured while writing the file.")
 
     def clear_route(self, show_dialog=True):
         clear = confirmDialog.askyesno("SpanshRouter","Are you sure you want to clear the current route?") if show_dialog else True
