@@ -1,6 +1,8 @@
 import sys
 from SpanshRouter.SpanshRouter import SpanshRouter
 import tkinter.messagebox as confirmDialog
+import tkinter as tk
+from tkinter import *
 
 spansh_router = None
 
@@ -44,7 +46,9 @@ def ask_for_update():
             spansh_router.update_available = False
 
 def plugin_app(parent):
+    global tk.frame as tk
     global spansh_router
     spansh_router.init_gui(parent)
     spansh_router.open_last_route()
     parent.master.after_idle(ask_for_update)
+   
