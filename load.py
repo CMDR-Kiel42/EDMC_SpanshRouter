@@ -1,8 +1,12 @@
 import sys
 from SpanshRouter.SpanshRouter import SpanshRouter
 import tkinter.messagebox as confirmDialog
+from typing import Optional
+import tkinter as tk
+
 
 spansh_router = None
+IFFSQR: Optional[tk.Frame] = None
 
 def plugin_start3(plugin_dir):
     return plugin_start(plugin_dir)
@@ -11,7 +15,7 @@ def plugin_start(plugin_dir):
     global spansh_router
     spansh_router = SpanshRouter(plugin_dir)
     spansh_router.check_for_update()
-    return 'SpanshRouter'
+    return 'spansh_router'
 
 def plugin_stop():
     global spansh_router
@@ -43,8 +47,12 @@ def ask_for_update():
         else:
             spansh_router.update_available = False
 
-def plugin_app(parent):
+def plugin_app(parent: tk.Frame) -> tk.Frame:
     global spansh_router
-    spansh_router.init_gui(parent)
+    global IFFSQR
+    IFFSQR = tk.Frame(parent, borderwidth=2)
+    spansh_router.init_gui(parent,IFFSQR)
     spansh_router.open_last_route()
     parent.master.after_idle(ask_for_update)
+    
+    return IFFSQR
